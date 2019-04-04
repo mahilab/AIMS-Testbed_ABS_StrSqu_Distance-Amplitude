@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Git\AbsoluteThresholdTest\build-msvc-x64-debug\CMakeFiles\9c8cf404f5c6b0ff8a5c675067a0db8b\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{560B89C6-90A4-30A4-BBD8-4EE8ED85623D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+C:/Git/AbsoluteThresholdTest/build-msvc-x64-debug/CMakeFiles/HapEE-Control.dir
+C:/Git/AbsoluteThresholdTest/build-msvc-x64-debug/CMakeFiles/ALL_BUILD.dir
+C:/Git/AbsoluteThresholdTest/build-msvc-x64-debug/CMakeFiles/ZERO_CHECK.dir
