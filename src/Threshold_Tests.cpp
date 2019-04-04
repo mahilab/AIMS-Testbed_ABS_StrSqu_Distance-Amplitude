@@ -1,5 +1,5 @@
 /*
-File: main.cpp
+File: Threshold_Tests.cpp
 ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
 

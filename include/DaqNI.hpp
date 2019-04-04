@@ -18,7 +18,7 @@ sensors. Uses MEL's development ATIsensor class.
 ******************** LIBRARY IMPORT ************************
 ************************************************************/
 // libraries for MEL
-#include <MEL/Logging/DataLogger.hpp>
+#include <MEL/Logging/Csv.hpp>
 #include <MEL/Daq/Input.hpp>
 
 // C libraries
