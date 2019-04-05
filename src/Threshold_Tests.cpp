@@ -613,7 +613,7 @@ int main()
 	DaqNI					daqNI;					// creates a new analog input from the NI DAQ
 	AtiSensor				atiA, atiB;				// create the ATI FT Sensors
 	MaxonMotor				motorA, motorB;			// create new motors
-	vector<vector<double>>*	thresholdOutput_;		// creates pointer to the output data file for the experiment
+	vector<vector<double>>	thresholdOutput_;		// creates pointer to the output data file for the experiment
 	// VideoCap	camera(1920,1080,30);	// create new camera object for this trial 
 										// with a resolution of 960, 720p and 30 fps
 
@@ -643,20 +643,20 @@ int main()
 	User Interaction Portion of Program
 	*/
 	// import relevant data or creates new data structures
-	runImportUI(thresholdOutput_);
+	runImportUI(&thresholdOutput_);
 
 	// runs JND experimental protocal automatically
 	while (!g_stop)
 	{
 		// runs a full condition unless interupted
-		runExperimentUI(daqNI, atiA, atiB, motorA, motorB, thresholdOutput_);
+		runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput_);
 
 		// advance to the next condition if another condition exists
 		advanceExperimentCondition();		
 	}
 
 	// exports relevant JND data
-	runExportUI(thresholdOutput_);
+	runExportUI(&thresholdOutput_);
 	
 	// // delete camera object to free memory
 	// camera.~VideoCap();
