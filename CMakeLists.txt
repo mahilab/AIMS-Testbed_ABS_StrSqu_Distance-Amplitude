@@ -33,11 +33,9 @@ add_executable(Threshold_Tests
     include/MaxonMotor.hpp
     include/TrialList.hpp
     include/DaqNI.hpp
-    include/VideoCap.hpp
     src/MaxonMotor.cpp
     src/TrialList.cpp
     src/DaqNI.cpp
-    src/VideoCap.cpp
     src/Threshold_Tests.cpp
 )
 

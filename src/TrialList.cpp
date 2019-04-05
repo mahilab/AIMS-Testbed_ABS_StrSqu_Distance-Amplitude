@@ -16,7 +16,10 @@ Last Changed: 12/21/18
 #include "trialList.hpp"
 
 // libraries for MEL
-#include <MEL/Logging/DataLogger.hpp>
+#include <MEL/Logging/Csv.hpp>
+
+// string libraries
+#include <string>
 
 // namespace for std
 using namespace std;
@@ -344,7 +347,7 @@ bool TrialList::importList(string fileName, string directory)
 
 	// create prepare output trialList file
 	vector<vector<double>> output;
-	if (!DataLogger::read_from_csv(output, fileName, directory)) return false;
+	if (!csv_read_rows((directory+fileName), output, 0, 0)) return false;
 	
 	// imports condition information from trialList file
 	vector<double> outputRow = output[1];
@@ -373,23 +376,19 @@ void TrialList::exportList(string fileName, string directory, bool timestamp)
 	using namespace mel;
 
 	// create new data logger and prepare output trialList file
-	DataLogger loggerList;
 	const vector<string> HEADER_NAMES = { "0=St", "1=StXsq", "2=Sq", "3=SqXSt" };
-	loggerList.set_header(HEADER_NAMES);
+	csv_write_row((directory+fileName), HEADER_NAMES);
 
 	// output order of conditions in current test
 	vector<double> outputRow = {(double)conditions[0], (double)conditions[1],
 		(double)conditions[2], (double)conditions[3]};
-	loggerList.buffer(outputRow);
+	csv_append_row((directory+fileName), outputRow);
 
 	// output order of all angle values in current test
 	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
 	{
 		outputRow = { (double)angles[0][i], (double)angles[1][i],
 			(double)angles[2][i], (double)angles[3][i] };
-		loggerList.buffer(outputRow);
+		csv_append_row((directory+fileName), outputRow);
 	}
-
-	// save output data
-	loggerList.save_data(fileName, directory, timestamp);
 }

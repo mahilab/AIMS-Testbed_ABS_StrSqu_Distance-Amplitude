@@ -27,12 +27,13 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 #include "TrialList.hpp"
 
 // libraries for VideoCap Class
-#include "VideoCap.hpp"
+// #include "VideoCap.hpp"
 
 // libraries for MEL
 #include <MEL/Core/Console.hpp>
 #include <MEL/Core/Timer.hpp>
-#include <MEL/Logging/DataLogger.hpp>
+#include <MEL/Logging/Csv.hpp>
+#include <MEL/Utility/Mutex.hpp>
 #include <MEL/Devices/AtiSensor.hpp>
 #include <MEL/Devices/Windows/Keyboard.hpp>
 #include <MEL/Utility/System.hpp>
@@ -43,6 +44,7 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 
 // namespace for MEL
 using namespace mel;
+using namespace std;
 
 
 /***********************************************************
@@ -150,7 +152,7 @@ during the motor movement
 void recordMovementTrial(array<array<int,2>,4> &posDes, DaqNI &daqNI,
 						 AtiSensor &atiA,				AtiSensor &atiB,
 						 MaxonMotor &motorA,			MaxonMotor &motorB,
-						 DataLogger &loggerMovement)
+						 vector<vector<double>>* output_)
 {
 	// initial sample
 	int sample = 0;
@@ -190,8 +192,8 @@ void recordMovementTrial(array<array<int,2>,4> &posDes, DaqNI &daqNI,
 				torqueB[0],			torqueB[1],			torqueB[2]
 			};
 		}
-		// input the the sampled data into data logger buffer
-		loggerMovement.buffer(outputRow);
+		// input the the sampled data into output buffer
+		output_->push_back(outputRow);
 
 		// increment sample number
 		sample++;
@@ -209,11 +211,29 @@ is working.
 */
 void runMovementTrial(array<array<int, 2>, 4> &posDes,	DaqNI &daqNI, 
 					  AtiSensor &atiA,					AtiSensor &atiB,
-					  MaxonMotor &motorA,				MaxonMotor &motorB,
-					  VideoCap &camera)
+					  MaxonMotor &motorA,				MaxonMotor &motorB)
 {
-	// create new data logger and prepare output file
-	DataLogger loggerMovement;
+	// create new output buffer
+	vector<vector<double>> movementOutput;
+
+	// defining the file name for the export data 
+	string fileName = "sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data";
+	string filepath = g_DATA_PATH + "/data/FT" + "/subject" + to_string(g_subject) + fileName;
+
+	// // create new camera directory if needed
+	// string camDir = g_DATA_PATH + "/data/CAM" + "/subject" + to_string(g_subject);
+	// create_directory(camDir);
+
+	// // starts camera video acquisition
+	// if (!camera.beginCapture(camDir + "/" + fileName + ".avi")) print("Camera did not begin capture");
+
+	// starting haptic trial
+	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, &movementOutput);
+	
+	// // stops camera video acquisition
+	// if (!camera.endCapture()) print("Camera did not end capture");
+
+	// Defines header names of the csv
 	const vector<string> HEADER_NAMES = { "Samples",
 		// Motor/Sensor A
 		"Position A Desired", "Position A Actual",
@@ -223,27 +243,12 @@ void runMovementTrial(array<array<int, 2>, 4> &posDes,	DaqNI &daqNI,
 		// Motor/Sensor B
 		"Position B Desired", "Position B Actual", 
 		"FxB", "FyB", "FzB", 
-		"TxB", "TyB", "TzB" };
-	loggerMovement.set_header(HEADER_NAMES);
-
-	// defining the file name for the export data file and video camera object
-	string fileName = "sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data";
-
-	// create new camera directory if needed
-	string camDir = g_DATA_PATH + "/data/CAM" + "/subject" + to_string(g_subject);
-	create_directory(camDir);
-
-	// starts camera video acquisition
-	if (!camera.beginCapture(camDir + "/" + fileName + ".avi")) print("Camera did not begin capture");
-
-	// starting haptic trial
-	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, loggerMovement);
-	
-	// stops camera video acquisition
-	if (!camera.endCapture()) print("Camera did not end capture");
+		"TxB", "TyB", "TzB" 
+		};
 
 	// saves and exports trial data
-	loggerMovement.save_data(fileName, g_DATA_PATH + "/data/FT" + "/subject" + to_string(g_subject));
+	csv_write_row(filepath, HEADER_NAMES);
+	csv_append_rows(filepath, movementOutput);
 	//print(fileName + "Output Successfull");
 }
 
@@ -260,26 +265,26 @@ void importSubjectNumber()
 	int inputVal = 0;
 
 	// asks experimenter to input subject number for the experiment
-	print("Please indicate the subject number: ");
-	cin		>> g_subject;
+	mel::print("Please indicate the subject number: ");
+	std::cin		>> g_subject;
 
-	print("You typed " + to_string(g_subject) + ", is this correct?");
-	print("Please type CONFIRM_VALUE to confirm subject number");
-	cin		>> inputVal;
+	mel::print("You typed " + to_string(g_subject) + ", is this correct?");
+	mel::print("Please type CONFIRM_VALUE to confirm subject number");
+	std::cin		>> inputVal;
 
 	// loops until a proper response is given
 	while (inputVal != g_CONFIRM_VALUE)
 	{
-		print("Subject number was not confirmed. You typed: " + to_string(inputVal));
-		print("Please indicate the subject number: ");
+		mel::print("Subject number was not confirmed. You typed: " + to_string(inputVal));
+		mel::print("Please indicate the subject number: ");
 
-		cin		>> g_subject;
-		print("You typed " + to_string(g_subject) + ", is this correct?");
-		print("Please type CONFIRM_VALUE to confirm subject number");
-		cin >> inputVal;
+		std::cin		>> g_subject;
+		mel::print("You typed " + to_string(g_subject) + ", is this correct?");
+		mel::print("Please type CONFIRM_VALUE to confirm subject number");
+		std::cin >> inputVal;
 	}
-	print("Subject number " + to_string(g_subject) + " confirmed");
-	print("");
+	mel::print("Subject number " + to_string(g_subject) + " confirmed");
+	mel::print("");
 }
 
 /*
@@ -292,24 +297,25 @@ void importTrialList()
 	string fileName = "sub" + to_string(g_subject) + "_trialList";
 	if (g_trialList.importList(fileName, g_DATA_PATH + "/data/trialList"))
 	{
-		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
+		mel::print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
 	}
-	else print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
-	print("");
+	else mel::print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
+	mel::print("");
 }
 
 /*
 Based on the subject number, attempts to import the relevant
 trialList to the experiment.
 */
-void importRecordJND(DataLogger &loggerJND)
+void importRecordJND(vector<vector<double>>* thresholdOutput_)
 {
 	// declares variables for filename and output
 	string fileName = "sub" + to_string(g_subject) + "_JND_data";
+	string filepath = g_DATA_PATH + "/data/JND" + fileName;
 	vector<vector<double>> output;
 
 	// attempts to import JND record for subject
-	if (DataLogger::read_from_csv(output, fileName, g_DATA_PATH + "/data/JND"))
+	if (csv_read_rows(filepath, output))
 	{
 		// defines relevant variables for data import
 		vector<double>	outputRow;
@@ -320,7 +326,7 @@ void importRecordJND(DataLogger &loggerJND)
 		for (int i = 0; i < output.size() - 1; i++)
 		{
 			outputRow = output[i + 1];
-			loggerJND.buffer(outputRow);
+			thresholdOutput_->push_back(outputRow);
 		}
 
 		// confirms import with experimenter 
@@ -358,16 +364,6 @@ void importRecordJND(DataLogger &loggerJND)
 	}
 	else print("Subject " + to_string(g_subject) + "'s JND record has been built successfully");
 
-	// builds header names for JND logger
-	const vector<string> HEADER_NAMES = { 
-		"Iteration",			"Condition (0=St 1=StXSq 2=Sq 3=SqXSt)",
-		"AngCurr",				"Reference Angle",
-		"Comparision Angle",	"Greater Cue (0=Reference 1=Comparison)",
-		"User Direct Input (1=First Cue Greater 2=Second Cue Greater)",
-		"Cue Order (0=Test First 1=Ref First" 
-	};
-	loggerJND.set_header(HEADER_NAMES);
-
 	// makes space for next print statements
 	print("");
 }
@@ -379,7 +375,7 @@ void importRecordJND(DataLogger &loggerJND)
 /*
 Record's participant's JND response to current trial
 */
-void recordExperimentJND(DataLogger &loggerJND, bool ref2Test)
+void recordExperimentJND(vector<vector<double>>* thresholdOutput_, bool ref2Test)
 {
 	// creates an integer for user input
 	int inputVal = 0;
@@ -430,7 +426,7 @@ void recordExperimentJND(DataLogger &loggerJND, bool ref2Test)
 		(double)g_trialList.getAngleNumber(),		(double)greaterCue,
 		(double)inputVal,							(double)ref2Test 
 	};
-	loggerJND.buffer(outputRow);
+	thresholdOutput_->push_back(outputRow);
 }
 
 /*
@@ -484,11 +480,11 @@ Asks the experimenter for the subject number. Then, if
 relevant, imports trialList and JND file from previous
 experiment
 */
-void runImportUI(DataLogger &loggerJND)
+void runImportUI(vector<vector<double>>* thresholdOutput_)
 {
 	importSubjectNumber();
 	importTrialList();
-	importRecordJND(loggerJND);
+	importRecordJND(thresholdOutput_);
 }
 
 /*
@@ -497,8 +493,8 @@ experimenter enters the exit value, exits the program.
 */
 void runExperimentUI(DaqNI &daqNI,
 					 AtiSensor &atiA,	 AtiSensor &atiB,
-					 MaxonMotor &motorA, MaxonMotor &motorB, 
-					 DataLogger &loggerJND, VideoCap &camera)
+					 MaxonMotor &motorA, MaxonMotor &motorB,
+					 vector<vector<double>>* thresholdOutput_)
 {
 	// defines positions of the currrent test cue
 	array<array<int, 2>, 4> posDes;
@@ -524,10 +520,10 @@ void runExperimentUI(DaqNI &daqNI,
 		bool ref2Test = g_trialList.getTestPositions(posDes);
 
 		// provides cue to user
-		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, camera);
+		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 		// record JND trial response
-		recordExperimentJND(loggerJND, ref2Test);
+		recordExperimentJND(thresholdOutput_, ref2Test);
 
 		// moves experiment to the next trial within current condition
 		g_trialList.nextAngle();
@@ -540,23 +536,34 @@ void runExperimentUI(DaqNI &daqNI,
 	bool ref2Test = g_trialList.getTestPositions(posDes);
 
 	// provides final cue of condition to user
-	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, camera);
+	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 	// record final JND trial response
-	recordExperimentJND(loggerJND, ref2Test);
+	recordExperimentJND(thresholdOutput_, ref2Test);
 }
 
 /*
 Saves the JND data file as well as the trialList given
 to the participant.
 */
-void runExportUI(DataLogger &loggerJND)
+void runExportUI(vector<vector<double>>* thresholdOutput_)
 {
 	// defining the file name for the JND data file
 	string fileName = "sub" + to_string(g_subject) + "_JND_data";
+	string filepath = g_DATA_PATH + "/data/JND" + filepath;
+
+	// builds header names for threshold logger
+	const vector<string> HEADER_NAMES = { 
+		"Iteration",			"Condition (0=St 1=StXSq 2=Sq 3=SqXSt)",
+		"AngCurr",				"Reference Angle",
+		"Comparision Angle",	"Greater Cue (0=Reference 1=Comparison)",
+		"User Direct Input (1=First Cue Greater 2=Second Cue Greater)",
+		"Cue Order (0=Test First 1=Ref First)" 
+	};
 
 	// saves the JND data
-	loggerJND.save_data(fileName, g_DATA_PATH + "/data/JND", g_TIMESTAMP);
+	csv_write_row(filepath, HEADER_NAMES);
+	csv_append_rows(filepath, *thresholdOutput_);
 
 	// information about the current trial the test was exited on
 	print("Test Saved @ ");
@@ -603,11 +610,11 @@ int main()
 	register_ctrl_handler(my_handler);
 
 	// creates all neccesary objects for the program
-	DaqNI		daqNI;					// creates a new analog input from the NI DAQ
-	AtiSensor	atiA, atiB;				// create the ATI FT Sensors
-	MaxonMotor	motorA, motorB;			// create new motors
-	DataLogger	loggerJND;				// create new data logger
-	VideoCap	camera(1920,1080,30);	// create new camera object for this trial 
+	DaqNI					daqNI;					// creates a new analog input from the NI DAQ
+	AtiSensor				atiA, atiB;				// create the ATI FT Sensors
+	MaxonMotor				motorA, motorB;			// create new motors
+	vector<vector<double>>*	thresholdOutput_;		// creates pointer to the output data file for the experiment
+	// VideoCap	camera(1920,1080,30);	// create new camera object for this trial 
 										// with a resolution of 960, 720p and 30 fps
 
 	/*
@@ -636,23 +643,23 @@ int main()
 	User Interaction Portion of Program
 	*/
 	// import relevant data or creates new data structures
-	runImportUI(loggerJND);
+	runImportUI(thresholdOutput_);
 
 	// runs JND experimental protocal automatically
 	while (!g_stop)
 	{
 		// runs a full condition unless interupted
-		runExperimentUI(daqNI, atiA, atiB, motorA, motorB, loggerJND, camera);
+		runExperimentUI(daqNI, atiA, atiB, motorA, motorB, thresholdOutput_);
 
 		// advance to the next condition if another condition exists
 		advanceExperimentCondition();		
 	}
 
 	// exports relevant JND data
-	runExportUI(loggerJND);
+	runExportUI(thresholdOutput_);
 	
-	// delete camera object to free memory
-	camera.~VideoCap();
+	// // delete camera object to free memory
+	// camera.~VideoCap();
 
 	print("Press Escape to end program...");
 	Keyboard::wait_for_key(Key::Escape);
