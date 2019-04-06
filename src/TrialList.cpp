@@ -341,13 +341,13 @@ int TrialList::getAngCurr()
 /*
 Imports trialList from a saved file
 */
-bool TrialList::importList(string fileName, string directory)
+bool TrialList::importList(string filepath)
 {
 	using namespace mel;
 
 	// create prepare output trialList file
 	vector<vector<double>> output;
-	if (!csv_read_rows((directory+fileName), output, 0, 0)) return false;
+	if (!csv_read_rows(filepath, output, 0, 0)) return false;
 	
 	// imports condition information from trialList file
 	vector<double> outputRow = output[1];
@@ -371,24 +371,24 @@ bool TrialList::importList(string fileName, string directory)
 /*
 Exports trialList to a saved file
 */
-void TrialList::exportList(string fileName, string directory, bool timestamp)
+void TrialList::exportList(string filepath, bool timestamp)
 {
 	using namespace mel;
 
 	// create new data logger and prepare output trialList file
 	const vector<string> HEADER_NAMES = { "0=St", "1=StXsq", "2=Sq", "3=SqXSt" };
-	csv_write_row((directory+fileName), HEADER_NAMES);
+	csv_write_row(filepath, HEADER_NAMES);
 
 	// output order of conditions in current test
 	vector<double> outputRow = {(double)conditions[0], (double)conditions[1],
 		(double)conditions[2], (double)conditions[3]};
-	csv_append_row((directory+fileName), outputRow);
+	csv_append_row(filepath, outputRow);
 
 	// output order of all angle values in current test
 	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
 	{
 		outputRow = { (double)angles[0][i], (double)angles[1][i],
 			(double)angles[2][i], (double)angles[3][i] };
-		csv_append_row((directory+fileName), outputRow);
+		csv_append_row(filepath, outputRow);
 	}
 }

@@ -217,7 +217,7 @@ void runMovementTrial(array<array<int, 2>, 4> &posDes,	DaqNI &daqNI,
 	vector<vector<double>> movementOutput;
 
 	// defining the file name for the export data 
-	string fileName = "sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data";
+	string fileName = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
 	string filepath = g_DATA_PATH + "/data/FT" + "/subject" + to_string(g_subject) + fileName;
 
 	// // create new camera directory if needed
@@ -294,13 +294,14 @@ trialList to the experiment.
 void importTrialList()
 {
 	// attempts to import trialList for subject
-	string fileName = "sub" + to_string(g_subject) + "_trialList";
-	if (g_trialList.importList(fileName, g_DATA_PATH + "/data/trialList"))
+	string fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
+	string filepath = g_DATA_PATH + "/data/trialList" + fileName;
+	if (g_trialList.importList(filepath))
 	{
-		mel::print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
+		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
 	}
-	else mel::print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
-	mel::print("");
+	else print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
+	print("");
 }
 
 /*
@@ -310,7 +311,7 @@ trialList to the experiment.
 void importRecordJND(vector<vector<double>>* thresholdOutput_)
 {
 	// declares variables for filename and output
-	string fileName = "sub" + to_string(g_subject) + "_JND_data";
+	string fileName = "/sub" + to_string(g_subject) + "_JND_data.csv";
 	string filepath = g_DATA_PATH + "/data/JND" + fileName;
 	vector<vector<double>> output;
 
@@ -549,8 +550,8 @@ to the participant.
 void runExportUI(vector<vector<double>>* thresholdOutput_)
 {
 	// defining the file name for the JND data file
-	string fileName = "sub" + to_string(g_subject) + "_JND_data";
-	string filepath = g_DATA_PATH + "/data/JND" + filepath;
+	string fileName = "/sub" + to_string(g_subject) + "_JND_data.csv";
+	string filepath = g_DATA_PATH + "/data/JND" + fileName;
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = { 
@@ -575,8 +576,9 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 
 	// exporting the trialList for this subject
 	// defining the file name for the JND data file
-	fileName = "sub" + to_string(g_subject) + "_trialList";
-	g_trialList.exportList(fileName, g_DATA_PATH + "/data/trialList", g_TIMESTAMP);
+	fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
+	filepath = g_DATA_PATH + "/data/trialList" + fileName;
+	g_trialList.exportList(filepath, g_TIMESTAMP);
 
 	// final messages before end of program
 	print("trialList exported...");

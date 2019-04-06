@@ -89,7 +89,7 @@ public:
 	int		getAngCurr();	
 
 	// inport/export functions
-	bool	importList(string fileName, string directory);
-	void	exportList(string fileName, string directory, bool timestamp);
+	bool	importList(string filepath);
+	void	exportList(string filepath, bool timestamp);
 };
 #endif
