@@ -30,10 +30,10 @@ const int	g_NUMBER_ANGLES = 7;
 // const int	g_NUMBER_CONDITIONS = 4; // will change to 3
 const int g_NUMBER_CONDITIONS = 3;
 const int	g_NUMBER_TRIALS = 50;
-//const array<int, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 13, 26, 39, 52, 65, 78, 91 };
 const array<double, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 24, 24, 24, 24, 24, 24, 24 };
-// const int g_REFERENCE_ANGLE = 52; //in degrees
-// const int g_INTERFERENCE_ANGLE = 52; //in degrees
+// const array<double, g_NUMBER_ANGLES> g_Stretch_Angles = {0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08};
+// const array<double, g_NUMBER_ANGLES> g_Stretch_Squeeze_Lo_Angles = {18, 24, 30, 36, 42, 48, 54};		(Interference Cue is 36)
+// const array<double, g_NUMBER_ANGLES> g_Stretch_Squeeze_Lo_Angles = {24, 40, 56, 72, 88, 104, 120};	(Interference Cue is 72)
 const int g_INTERFERENCE_ANGLE_LOW = 36;
 const int g_INTERFERENCE_ANGLE_HIGH = 72;
 const int g_ZERO_ANGLE = 0;
@@ -48,10 +48,8 @@ class TrialList
 private:
 	// private array variables
 	array<array<double, g_NUMBER_ANGLES * g_NUMBER_TRIALS>, g_NUMBER_CONDITIONS> angles; // array of arrays that hold angle positions
-	//array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze", "Squeeze", "SqueezeXStretch" }; // array of conditions
-	//array<int, g_NUMBER_CONDITIONS>		conditions = { 0,1,2,3 };
 	array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze(Low)", "StretchXSqueeze(High)" }; // array of conditions
-	array<int, g_NUMBER_CONDITIONS>		conditions = { 2,2,2 };
+	array<int, g_NUMBER_CONDITIONS>		conditions = { 1,2,3 };
 	
 	// random device variable
 	random_device rd; // create random generator
