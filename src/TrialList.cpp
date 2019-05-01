@@ -2,7 +2,7 @@
 File: TrialList.cpp
 ________________________________
 Author(s): Joshua Fleck (jjf8@rice.edu)
-Edited by: Zane Zook (gadzooks@rice.edu)
+Edited by: Zane Zook (gadzooks@rice.edu), Andrew Low (andrew.low@rice.edu)
 
 Defines a class to randomize a list of trial conditions for
 JND experiment.

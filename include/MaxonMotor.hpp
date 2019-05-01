@@ -2,6 +2,7 @@
 File: MaxonMotor.hpp
 ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
+Edited By: Andrew Low (andrew.low@rice.edu)
 
 This is the header file for the Maxon Motor class. This 
 class holds all the lower level commands sent to the Maxon

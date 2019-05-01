@@ -2,6 +2,7 @@
 File: Threshold_Tests.cpp
 ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
+Edited By: Andrew Low (andrew.low@rice.edu)
 
 This file is the main file of the HapEE-Control project
 which send messages using the MAXON motor controller
