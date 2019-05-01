@@ -17,6 +17,7 @@ Last Changed: 12/21/18
 
 // libraries for MEL
 #include <MEL/Logging/Csv.hpp>
+#include <MEL/Core/Console.hpp>
 
 // string libraries
 #include <string>
@@ -34,7 +35,7 @@ Constructor for the TrialList class
 TrialList::TrialList()
 {
 	// fill out trialArrs with angles
-	array<int, g_NUMBER_ANGLES*g_NUMBER_TRIALS> conditionAngles;
+	array<double, g_NUMBER_ANGLES*g_NUMBER_TRIALS> conditionAngles;
 	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i = i + g_NUMBER_ANGLES) 
 	{
 		for (int j = 0; j < g_NUMBER_ANGLES; j++) 
@@ -87,7 +88,7 @@ string TrialList::getConditionName(int con)
 /*
 Outputs current angle number
 */
-int TrialList::getAngleNumber(int con, int ang)
+double TrialList::getAngleNumber(int con, int ang)
 {
 	return angles[con][ang];
 }
@@ -98,15 +99,30 @@ Current form outputs the angle for the stretch rocker
 first and the squeeze band second. Also indicates 
 if the reference angle should be given first or second
 */
-bool TrialList::getTestPositions(array<array<int,2>,4> &posDes, int con, int ang)
+
+/*bool */void TrialList::getTestPositions(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes*/, int con, int ang)
 {
 	// determine the angles that will be used for the test for squeeze/stretch
-	const int ZERO_ANGLE = 0; //in degrees
-	array<int , 2> testPositions;
-	array<int , 2> refPositions;
+	array<double , 2> testPositions;
+	//array<int , 2> refPositions;
 
 
 	// generates test position array and reference position array
+	
+	switch (getCondNum())
+	{
+	case 0:
+		testPositions = { getAngleNumber(con, ang), g_ZERO_ANGLE };
+		break;
+	case 1:
+		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };
+		break;
+	case 2:
+		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_HIGH };
+		break;
+	}
+	
+	/*
 	switch (getCondNum())
 	{
 	case 0:
@@ -125,9 +141,14 @@ bool TrialList::getTestPositions(array<array<int,2>,4> &posDes, int con, int ang
 		refPositions = { g_REFERENCE_ANGLE, g_REFERENCE_ANGLE };
 		testPositions = { g_INTERFERENCE_ANGLE, getAngleNumber(con, ang) };
 		break;
-	}
-
-	// determine if reference or test will be first
+	
+	} */
+	/*********************************************/
+	// determine if reference or test will be first	
+	posDes[0] = testPositions;
+	posDes[1] = { g_ZERO_ANGLE,g_ZERO_ANGLE };
+	
+	/*
 	uniform_int_distribution<int> distribution(0, 1);
 	bool ref2Test = distribution(rd);  // generates boolean
 
@@ -148,6 +169,7 @@ bool TrialList::getTestPositions(array<array<int,2>,4> &posDes, int con, int ang
 	}
 	
 	return ref2Test;
+	*/
 }
 
 /*
@@ -182,7 +204,7 @@ string TrialList::getConditionName()
 /*
 Calls private function to get current angle number
 */
-int TrialList::getAngleNumber()
+double TrialList::getAngleNumber()
 {
 	return angles[conCurr][angCurr];
 }
@@ -190,17 +212,32 @@ int TrialList::getAngleNumber()
 /*
 Calls private function to get the reference angle
 */
+// ****************** ADD IN INTEREFENCE LOW AND INTERFERENCE HIGH ******************
+/*
 int TrialList::getReferenceAngle()
 {
 	return g_REFERENCE_ANGLE;
 }
+*/
 
 /*
 Calls private function to get the interference angle
 */
-int TrialList::getInterferenceAngle()
+int TrialList::getInterference(int interferenceFlag)
 {
-	return g_INTERFERENCE_ANGLE;
+	if (interferenceFlag == 0)
+	{
+		return g_ZERO_ANGLE;
+	}
+	else if (interferenceFlag == 1)
+	{
+		return g_INTERFERENCE_ANGLE_LOW;
+	}
+	else
+	{
+		return g_INTERFERENCE_ANGLE_HIGH;
+	}
+	
 }
 
 /*
@@ -208,9 +245,10 @@ Outputs current angle combination as an int array.
 Current form outputs the angle for the stretch rocker
 first and the squeeze band second
 */
-bool TrialList::getTestPositions(array<array<int, 2>,4> &posDes)
+
+/*bool */void TrialList::getTestPositions(array<array<double,2>,2> &posDes/*array<array<int, 2>,4> &posDes*/)
 {
-	return getTestPositions(posDes, conCurr, angCurr);
+	/*return */getTestPositions(posDes, conCurr, angCurr);
 }
 
 /*
@@ -228,7 +266,7 @@ string TrialList::getComboNames()
 {
 	string retString = "";
 	for (int i = 0; i < g_NUMBER_CONDITIONS; i++) {
-		array<int, g_NUMBER_ANGLES*g_NUMBER_TRIALS> locArr = angles[i];
+		array<double, g_NUMBER_ANGLES*g_NUMBER_TRIALS> locArr = angles[i];
 		for (int j = 0; j < g_NUMBER_ANGLES*g_NUMBER_TRIALS; j++) {
 			retString += to_string(getIterationNumber(i, j)) + ": " + getTrialName(i, j) + "\n";
 		}
@@ -344,13 +382,24 @@ Imports trialList from a saved file
 bool TrialList::importList(string filepath)
 {
 	using namespace mel;
-
 	// create prepare output trialList file
 	vector<vector<double>> output;
-	if (!csv_read_rows(filepath, output, 0, 0)) return false;
-	
+	if (!csv_read_rows(filepath, output, 0, 1))
+	{
+		//print("error");
+		return false;
+	}
 	// imports condition information from trialList file
-	vector<double> outputRow = output[1];
+	//print("here da output");
+
+	vector<double> row;
+	csv_read_row(filepath, row, 0, 1);
+    print(row);
+	
+	//print("here");
+	
+	vector<double> outputRow = output.at(1);
+	print("here");
 	for (int j = 0; j < outputRow.size(); j++)
 	{
 		conditions[j] = (int)outputRow[j];
@@ -376,19 +425,24 @@ void TrialList::exportList(string filepath, bool timestamp)
 	using namespace mel;
 
 	// create new data logger and prepare output trialList file
-	const vector<string> HEADER_NAMES = { "0=St", "1=StXsq", "2=Sq", "3=SqXSt" };
+	const vector<string> HEADER_NAMES = { "0=St", "1=StXsq(lo)", "1=StXsq(hi)"};
 	csv_write_row(filepath, HEADER_NAMES);
 
 	// output order of conditions in current test
+	//vector<double> outputRow = {(double)conditions[0], (double)conditions[1],
+	//	(double)conditions[2], (double)conditions[3]};
 	vector<double> outputRow = {(double)conditions[0], (double)conditions[1],
-		(double)conditions[2], (double)conditions[3]};
+		(double)conditions[2]};
+	
 	csv_append_row(filepath, outputRow);
 
 	// output order of all angle values in current test
 	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
 	{
+		//outputRow = { (double)angles[0][i], (double)angles[1][i],
+		//	(double)angles[2][i], (double)angles[3][i] };
 		outputRow = { (double)angles[0][i], (double)angles[1][i],
-			(double)angles[2][i], (double)angles[3][i] };
+			(double)angles[2][i]};
 		csv_append_row(filepath, outputRow);
 	}
 }

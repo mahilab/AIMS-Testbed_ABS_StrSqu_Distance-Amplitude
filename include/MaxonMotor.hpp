@@ -76,7 +76,7 @@ public:
 	//void setRecorderParam(unsigned int desSampleFreq, unsigned int desSamples);
 
 	// movement functions
-	void		 move(long desPosition);
+	void		 move(double desPosition);
 	void		 getPosition(long& position);
 	BOOL		 targetReached();
 

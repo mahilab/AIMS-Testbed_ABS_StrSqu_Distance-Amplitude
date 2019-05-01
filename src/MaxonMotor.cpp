@@ -286,7 +286,7 @@ Sets the sampling freqeuncy and number of samples or the data recorder
 /*
 Commands motor controller to move motor to specified position
  */
-void MaxonMotor::move(long desPosition)
+void MaxonMotor::move(double desPosition)
 {
 	BOOL Absolute =		TRUE; 
 	BOOL Immediately =	TRUE;
@@ -295,7 +295,7 @@ void MaxonMotor::move(long desPosition)
 	desPosition = desPosition * g_DEGREES_TO_COUNT;
 
 	// sends signal to move Maxon motor to specified position
-	if (!VCS_MoveToPosition(keyHandle, nodeId, desPosition, Absolute, Immediately, &errorCode)) 
+	if (!VCS_MoveToPosition(keyHandle, nodeId, (long)desPosition, Absolute, Immediately, &errorCode)) 
 	{
 		cout << "Move to position failed!, error code = " << errorCode << endl;
 		halt();

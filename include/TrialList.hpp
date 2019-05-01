@@ -27,11 +27,16 @@ using namespace std;
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 const int	g_NUMBER_ANGLES = 7;
-const int	g_NUMBER_CONDITIONS = 4;
+// const int	g_NUMBER_CONDITIONS = 4; // will change to 3
+const int g_NUMBER_CONDITIONS = 3;
 const int	g_NUMBER_TRIALS = 50;
-const array<int, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 13, 26, 39, 52, 65, 78, 91 };
-const int g_REFERENCE_ANGLE = 52; //in degrees
-const int g_INTERFERENCE_ANGLE = 52; //in degrees
+//const array<int, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 13, 26, 39, 52, 65, 78, 91 };
+const array<double, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 24, 24, 24, 24, 24, 24, 24 };
+// const int g_REFERENCE_ANGLE = 52; //in degrees
+// const int g_INTERFERENCE_ANGLE = 52; //in degrees
+const int g_INTERFERENCE_ANGLE_LOW = 36;
+const int g_INTERFERENCE_ANGLE_HIGH = 72;
+const int g_ZERO_ANGLE = 0;
 
 
 
@@ -42,9 +47,11 @@ class TrialList
 {
 private:
 	// private array variables
-	array<array<int, g_NUMBER_ANGLES * g_NUMBER_TRIALS>, g_NUMBER_CONDITIONS> angles; // array of arrays that hold angle positions
-	array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze", "Squeeze", "SqueezeXStretch" }; // array of conditions
-	array<int, g_NUMBER_CONDITIONS>		conditions = { 0,1,2,3 };
+	array<array<double, g_NUMBER_ANGLES * g_NUMBER_TRIALS>, g_NUMBER_CONDITIONS> angles; // array of arrays that hold angle positions
+	//array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze", "Squeeze", "SqueezeXStretch" }; // array of conditions
+	//array<int, g_NUMBER_CONDITIONS>		conditions = { 0,1,2,3 };
+	array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze(Low)", "StretchXSqueeze(High)" }; // array of conditions
+	array<int, g_NUMBER_CONDITIONS>		conditions = { 2,2,2 };
 	
 	// random device variable
 	random_device rd; // create random generator
@@ -56,8 +63,9 @@ private:
 	// overloaded functions to directly access name information
 	string	 getTrialName(int con, int ang);
 	string	 getConditionName(int con);
-	int		 getAngleNumber(int con, int ang);
-	bool	 getTestPositions(array<array<int, 2>,4> &posDes, int con, int ang);
+	double		 getAngleNumber(int con, int ang);
+	// bool	 getTestPositions(array<array<int, 2>,4> &posDes, int con, int ang);
+	void	 getTestPositions(array<array<double, 2>,2> &posDes, int con, int ang);
 	int		 getIterationNumber(int con, int ang);
 
 public:
@@ -68,10 +76,11 @@ public:
 	// read various combinations names
 	string  getTrialName();
 	string  getConditionName();
-	int		getAngleNumber();
-	int		getReferenceAngle();
-	int		getInterferenceAngle();
-	bool	getTestPositions(array<array<int, 2>,4> &posDes);
+	double		getAngleNumber();
+	// int		getReferenceAngle();
+	int		getInterference(int interferenceFlag);
+	// bool	getTestPositions(array<array<int, 2>,4> &posDes);
+	void	getTestPositions(array<array<double, 2>,2> &posDes);
 	int		getIterationNumber();
 	string	getComboNames(); // get full list of combination orderings
 

@@ -54,7 +54,7 @@ using namespace std;
 int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in between cues
 const int	 g_CONFIRM_VALUE(123);
 const bool	 g_TIMESTAMP(false);
-const string g_DATA_PATH("C:/Users/zaz2/Documents/Interference JND"); //file path to main project files
+const string g_DATA_PATH("C:/Users/akl5/Documents/Absolute Threshold"); //file path to main project files
 																										 
 // subject specific variables
 TrialList	 g_trialList;
@@ -100,7 +100,7 @@ Function to move the motor and measure its position. Position
 measurement occurs at 100Hz in a separate thread to the 
 1000Hz force sensor recorder
 */
-void motorPosGet(array<array<int,2>,4> &posDes, MaxonMotor &motorA, MaxonMotor &motorB) 
+void motorPosGet(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes*/, MaxonMotor &motorA, MaxonMotor &motorB) 
 {
 	// loops through each of the positions in the array for the trial
 	for (int i = 0; i < posDes.size(); i++)
@@ -113,8 +113,8 @@ void motorPosGet(array<array<int,2>,4> &posDes, MaxonMotor &motorA, MaxonMotor &
 		}
 
 		// move motors to desired positions
-		motorA.move((long) g_motorDesPos[0]);
-		motorB.move((long) g_motorDesPos[1]);
+		motorA.move((double) g_motorDesPos[0]);
+		motorB.move((double) g_motorDesPos[1]);
 
 		// create 100Hz timer
 		Timer timer(hertz(100));
@@ -135,10 +135,12 @@ void motorPosGet(array<array<int,2>,4> &posDes, MaxonMotor &motorA, MaxonMotor &
 		}
 
 		//waits between cue 1 and cue 2
+		/*
 		if (i == 1)
 		{
 			sleep(milliseconds(g_TIME_BW_CUES));
 		}
+		*/
 	}
 	// tells the force sensor loop to exit once trial is complete
 	g_motorFlag = true;
@@ -148,7 +150,7 @@ void motorPosGet(array<array<int,2>,4> &posDes, MaxonMotor &motorA, MaxonMotor &
 Measures force/torque data, motor position data and time information
 during the motor movement
 */
-void recordMovementTrial(array<array<int,2>,4> &posDes, DaqNI &daqNI,
+void recordMovementTrial(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes*/, DaqNI &daqNI,
 						 AtiSensor &atiA,				AtiSensor &atiB,
 						 MaxonMotor &motorA,			MaxonMotor &motorB,
 						 vector<vector<double>>* output_)
@@ -208,7 +210,7 @@ void recordMovementTrial(array<array<int,2>,4> &posDes, DaqNI &daqNI,
 Runs a single test trial on motorA to ensure data logging
 is working.
 */
-void runMovementTrial(array<array<int, 2>, 4> &posDes,	DaqNI &daqNI, 
+void runMovementTrial(array<array<double,2>,2> &posDes/*array<array<int, 2>, 4> &posDes*/,	DaqNI &daqNI, 
 					  AtiSensor &atiA,					AtiSensor &atiB,
 					  MaxonMotor &motorA,				MaxonMotor &motorB)
 {
@@ -295,11 +297,17 @@ void importTrialList()
 	// attempts to import trialList for subject
 	string fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
 	string filepath = g_DATA_PATH + "/data/trialList" + fileName;
+	print("Here in importTrialList");
 	if (g_trialList.importList(filepath))
 	{
+		print("Here in importTrialList if statement");
 		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
 	}
-	else print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
+	else
+	{
+		print("Here in importTrialList else statement");
+		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
+	}
 	print("");
 }
 
@@ -375,14 +383,16 @@ void importRecordJND(vector<vector<double>>* thresholdOutput_)
 /*
 Record's participant's JND response to current trial
 */
-void recordExperimentJND(vector<vector<double>>* thresholdOutput_, bool ref2Test)
+//void recordExperimentJND(vector<vector<double>>* thresholdOutput_, bool ref2Test)
+void recordExperimentJND(vector<vector<double>>* thresholdOutput_)
 {
 	// creates an integer for user input
 	int inputVal = 0;
 
 	// asks user for input regarding their comparison
 	print("Iteration: " + to_string(g_trialList.getIterationNumber()));
-	print("Which cue was larger, 1 or 2? Please enter an integer response...");
+	print("Could you detect the cue? 1 for yes, 2 for no.....");
+	
 	vector<Key> inputKeys = { Key::Num1, Key::Numpad1, Key::Num2, Key::Numpad2 };
 	Keyboard::wait_for_any_keys(inputKeys);
 	
@@ -399,33 +409,46 @@ void recordExperimentJND(vector<vector<double>>* thresholdOutput_, bool ref2Test
 
 	// based on cue order and user input determines what was
 	// percieved as the greater cue
+	/* ***********************THINK ABOUT DELETING*****************
 	int greaterCue;
 	if (ref2Test)
 	{
-		/*
+		
 		Reference cue and then comparision cue administered
 		If the user indicates 1 was greater, that would be the reference cue (0).
 		If the user indicates 2 was greater, that would be the comparison cue (1).
-		*/
+		
 		greaterCue = inputVal - 1;
 	}
 	else
 	{
-		/*
+		
 		Comparision cue and then Reference cue administered
 		If the user indicates 1 was greater, that would be the comparison cue (1).
 		If the user indicates 2 was greater, that would be the reference cue (0).
-		*/
+		
 		greaterCue = inputVal % 2;
 	}
+	***********************THINK ABOUT DELETING*****************
+	*/
 
 	// add current row for JND testing to the buffer
+	
+	vector<double> outputRow = { 
+		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
+		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterference(g_trialList.getCondNum()),
+		(double)g_trialList.getAngleNumber(),		(double)inputVal 
+	};
+	
+	/*
 	vector<double> outputRow = { 
 		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
 		(double)g_trialList.getAngCurr(),			(double)g_trialList.getReferenceAngle(),
 		(double)g_trialList.getAngleNumber(),		(double)greaterCue,
 		(double)inputVal,							(double)ref2Test 
 	};
+	*/
+
 	thresholdOutput_->push_back(outputRow);
 }
 
@@ -436,11 +459,6 @@ experimenter input.
 void advanceExperimentCondition()
 {
 	if (g_stop) return;
-
-	// informs experimenter condition is complete
-	//print("");
-	//print("Condition " + to_string(g_trialList.getCondNum()) + ": " +
-	//	g_trialList.getConditionName() + " Completed!");
 
 	// moves to next condition if next condition exists
 	if (!g_trialList.hasNextCondition())
@@ -483,8 +501,11 @@ experiment
 void runImportUI(vector<vector<double>>* thresholdOutput_)
 {
 	importSubjectNumber();
+	print("here");
 	importTrialList();
+	print("here");
 	importRecordJND(thresholdOutput_);
+	print("here");
 }
 
 /*
@@ -497,8 +518,9 @@ void runExperimentUI(DaqNI &daqNI,
 					 vector<vector<double>>* thresholdOutput_)
 {
 	// defines positions of the currrent test cue
-	array<array<int, 2>, 4> posDes;
-	
+	array<array<double, 2>, 2> posDes;
+	//array<array<int, 2>, 4> posDes;
+
 	// prints current condition for participant/experimenter 
 	int inputVal = 0;
 	print("Current Condition: " + g_trialList.getConditionName());
@@ -517,13 +539,16 @@ void runExperimentUI(DaqNI &daqNI,
 		if (g_stop) return;
 
 		// get next experiment cue
-		bool ref2Test = g_trialList.getTestPositions(posDes);
-
+		g_trialList.getTestPositions(posDes);
+		print(posDes[0]);
+		// bool ref2Test = g_trialList.getTestPositions(posDes);
+		
 		// provides cue to user
 		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 		// record JND trial response
-		recordExperimentJND(thresholdOutput_, ref2Test);
+		recordExperimentJND(thresholdOutput_);
+		// recordExperimentJND(thresholdOutput_, ref2Test);
 
 		// moves experiment to the next trial within current condition
 		g_trialList.nextAngle();
@@ -533,13 +558,15 @@ void runExperimentUI(DaqNI &daqNI,
 	if (g_stop) return;
 
 	// get final experiment cue
-	bool ref2Test = g_trialList.getTestPositions(posDes);
+	g_trialList.getTestPositions(posDes);
+	// bool ref2Test = g_trialList.getTestPositions(posDes);
 
 	// provides final cue of condition to user
 	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 	// record final JND trial response
-	recordExperimentJND(thresholdOutput_, ref2Test);
+	recordExperimentJND(thresholdOutput_);
+	// recordExperimentJND(thresholdOutput_, ref2Test);
 }
 
 /*
@@ -554,7 +581,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = { 
-		"Iteration",			"Condition (0=St 1=StXSq 2=Sq 3=SqXSt)",
+		"Iteration",			"Condition (0=St 1=StXSq(Lo) 2=StxSq(Hi))",
 		"AngCurr",				"Reference Angle",
 		"Comparision Angle",	"Greater Cue (0=Reference 1=Comparison)",
 		"User Direct Input (1=First Cue Greater 2=Second Cue Greater)",
