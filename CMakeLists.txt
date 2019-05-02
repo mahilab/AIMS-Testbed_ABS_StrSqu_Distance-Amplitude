@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.13)
 #===============================================================================
 
 # create project
-project(AbsoluteThreshold_HAPEE VERSION 0.1.0 LANGUAGES CXX)
+project(AbsoluteThreshold_AIMS VERSION 0.1.0 LANGUAGES CXX)
 
 # find MEL::MEL and all available MEL::xxx modules
 find_package(MEL REQUIRED)
@@ -29,10 +29,10 @@ link_directories(
 # create application
 add_executable(Threshold_Tests
     include/MaxonMotor.hpp
-    include/TrialList.hpp
+    include/abs_TrialList.hpp
     include/DaqNI.hpp
     src/MaxonMotor.cpp
-    src/TrialList.cpp
+    src/abs_TrialList.cpp
     src/DaqNI.cpp
     src/Threshold_Tests.cpp
 )

@@ -23,8 +23,8 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 #include "Definitions.h"
 #include "MaxonMotor.hpp"
 
-// libraries for Trial List Class
-#include "TrialList.hpp"
+// libraries for TrialList Class
+#include "abs_TrialList.hpp"
 
 // libraries for VideoCap Class
 // #include "VideoCap.hpp"
@@ -55,7 +55,7 @@ using namespace std;
 int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in between cues
 const int	 g_CONFIRM_VALUE(123);
 const bool	 g_TIMESTAMP(false);
-const string g_DATA_PATH("C:/Users/akl5/Documents/Absolute Threshold"); //file path to main project files
+const string g_DATA_PATH("C:/Users/zaz2/Box/Research/Wearable Multi-Scale Haptics Projects/AIMS Testbed/Absolute_Threshold_Tests"); //file path to main project files
 																										 
 // subject specific variables
 TrialList	 g_trialList;
@@ -298,15 +298,12 @@ void importTrialList()
 	// attempts to import trialList for subject
 	string fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
 	string filepath = g_DATA_PATH + "/data/trialList" + fileName;
-	print("Here in importTrialList");
 	if (g_trialList.importList(filepath))
 	{
-		print("Here in importTrialList if statement");
 		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
 	}
 	else
 	{
-		print("Here in importTrialList else statement");
 		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
 	}
 	print("");
@@ -316,14 +313,14 @@ void importTrialList()
 Based on the subject number, attempts to import the relevant
 trialList to the experiment.
 */
-void importRecordJND(vector<vector<double>>* thresholdOutput_)
+void importRecordABS(vector<vector<double>>* thresholdOutput_)
 {
 	// declares variables for filename and output
-	string fileName = "/sub" + to_string(g_subject) + "_JND_data.csv";
-	string filepath = g_DATA_PATH + "/data/JND" + fileName;
+	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
+	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
 	vector<vector<double>> output;
 
-	// attempts to import JND record for subject
+	// attempts to import ABS record for subject
 	if (csv_read_rows(filepath, output))
 	{
 		// defines relevant variables for data import
@@ -331,7 +328,7 @@ void importRecordJND(vector<vector<double>>* thresholdOutput_)
 		const int		ITERATION_NUM_INDEX = 0;
 		const int		ANGLE_NUM_INDEX = 2;
 
-		// loads JND record into experiment
+		// loads ABS record into experiment
 		for (int i = 0; i < output.size() - 1; i++)
 		{
 			outputRow = output[i + 1];
@@ -340,7 +337,7 @@ void importRecordJND(vector<vector<double>>* thresholdOutput_)
 
 		// confirms import with experimenter 
 		g_trialList.setCombo((int)outputRow[ITERATION_NUM_INDEX] + 1, (int)outputRow[ANGLE_NUM_INDEX] + 1);
-		print("Subject " + to_string(g_subject) + "'s JND record has been successfully imported");
+		print("Subject " + to_string(g_subject) + "'s ABS record has been successfully imported");
 		print("Current trial detected @");
 		print("Iteration: " + to_string(g_trialList.getIterationNumber()));
 		print("Condition:" + to_string(g_trialList.getCondNum()) + " - " + g_trialList.getConditionName());
@@ -371,7 +368,7 @@ void importRecordJND(vector<vector<double>>* thresholdOutput_)
 		}
 		print("Import Accepted.");
 	}
-	else print("Subject " + to_string(g_subject) + "'s JND record has been built successfully");
+	else print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
 
 	// makes space for next print statements
 	print("");
@@ -382,10 +379,10 @@ void importRecordJND(vector<vector<double>>* thresholdOutput_)
 ************* EXPERIMENT UI HELPER FUNCTIONS ***************
 ************************************************************/
 /*
-Record's participant's JND response to current trial
+Record's participant's ABS response to current trial
 */
-//void recordExperimentJND(vector<vector<double>>* thresholdOutput_, bool ref2Test)
-void recordExperimentJND(vector<vector<double>>* thresholdOutput_)
+//void recordExperimentABS(vector<vector<double>>* thresholdOutput_, bool ref2Test)
+void recordExperimentABS(vector<vector<double>>* thresholdOutput_)
 {
 	// creates an integer for user input
 	int inputVal = 0;
@@ -408,48 +405,12 @@ void recordExperimentJND(vector<vector<double>>* thresholdOutput_)
 		print("You typed " + to_string(inputVal));
 	}
 
-	// based on cue order and user input determines what was
-	// percieved as the greater cue
-	/* ***********************THINK ABOUT DELETING*****************
-	int greaterCue;
-	if (ref2Test)
-	{
-		
-		Reference cue and then comparision cue administered
-		If the user indicates 1 was greater, that would be the reference cue (0).
-		If the user indicates 2 was greater, that would be the comparison cue (1).
-		
-		greaterCue = inputVal - 1;
-	}
-	else
-	{
-		
-		Comparision cue and then Reference cue administered
-		If the user indicates 1 was greater, that would be the comparison cue (1).
-		If the user indicates 2 was greater, that would be the reference cue (0).
-		
-		greaterCue = inputVal % 2;
-	}
-	***********************THINK ABOUT DELETING*****************
-	*/
-
-	// add current row for JND testing to the buffer
-	
+	// add current row for ABS testing to the buffer
 	vector<double> outputRow = { 
 		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
 		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterference(g_trialList.getCondNum()),
 		(double)g_trialList.getAngleNumber(),		(double)inputVal 
 	};
-	
-	/*
-	vector<double> outputRow = { 
-		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
-		(double)g_trialList.getAngCurr(),			(double)g_trialList.getReferenceAngle(),
-		(double)g_trialList.getAngleNumber(),		(double)greaterCue,
-		(double)inputVal,							(double)ref2Test 
-	};
-	*/
-
 	thresholdOutput_->push_back(outputRow);
 }
 
@@ -496,17 +457,14 @@ void advanceExperimentCondition()
 ************************************************************/
 /*
 Asks the experimenter for the subject number. Then, if
-relevant, imports trialList and JND file from previous
+relevant, imports trialList and ABS file from previous
 experiment
 */
 void runImportUI(vector<vector<double>>* thresholdOutput_)
 {
 	importSubjectNumber();
-	print("here");
 	importTrialList();
-	print("here");
-	importRecordJND(thresholdOutput_);
-	print("here");
+	importRecordABS(thresholdOutput_);
 }
 
 /*
@@ -520,7 +478,6 @@ void runExperimentUI(DaqNI &daqNI,
 {
 	// defines positions of the currrent test cue
 	array<array<double, 2>, 2> posDes;
-	//array<array<int, 2>, 4> posDes;
 
 	// prints current condition for participant/experimenter 
 	int inputVal = 0;
@@ -542,14 +499,12 @@ void runExperimentUI(DaqNI &daqNI,
 		// get next experiment cue
 		g_trialList.getTestPositions(posDes);
 		print(posDes[0]);
-		// bool ref2Test = g_trialList.getTestPositions(posDes);
 		
 		// provides cue to user
 		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
-		// record JND trial response
-		recordExperimentJND(thresholdOutput_);
-		// recordExperimentJND(thresholdOutput_, ref2Test);
+		// record ABS trial response
+		recordExperimentABS(thresholdOutput_);
 
 		// moves experiment to the next trial within current condition
 		g_trialList.nextAngle();
@@ -560,25 +515,23 @@ void runExperimentUI(DaqNI &daqNI,
 
 	// get final experiment cue
 	g_trialList.getTestPositions(posDes);
-	// bool ref2Test = g_trialList.getTestPositions(posDes);
 
 	// provides final cue of condition to user
 	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
-	// record final JND trial response
-	recordExperimentJND(thresholdOutput_);
-	// recordExperimentJND(thresholdOutput_, ref2Test);
+	// record final ABS trial response
+	recordExperimentABS(thresholdOutput_);
 }
 
 /*
-Saves the JND data file as well as the trialList given
+Saves the ABS data file as well as the trialList given
 to the participant.
 */
 void runExportUI(vector<vector<double>>* thresholdOutput_)
 {
-	// defining the file name for the JND data file
-	string fileName = "/sub" + to_string(g_subject) + "_JND_data.csv";
-	string filepath = g_DATA_PATH + "/data/JND" + fileName;
+	// defining the file name for the ABS data file
+	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
+	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = { 
@@ -589,7 +542,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 		"Cue Order (0=Test First 1=Ref First)" 
 	};
 
-	// saves the JND data
+	// saves the ABS data
 	csv_write_row(filepath, HEADER_NAMES);
 	csv_append_rows(filepath, *thresholdOutput_);
 
@@ -602,7 +555,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 		+ to_string(g_trialList.getAngleNumber()));
 
 	// exporting the trialList for this subject
-	// defining the file name for the JND data file
+	// defining the file name for the ABS data file
 	fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
 	filepath = g_DATA_PATH + "/data/trialList" + fileName;
 	g_trialList.exportList(filepath, g_TIMESTAMP);
@@ -674,7 +627,7 @@ int main()
 	// import relevant data or creates new data structures
 	runImportUI(&thresholdOutput_);
 
-	// runs JND experimental protocal automatically
+	// runs ABS experimental protocol automatically
 	while (!g_stop)
 	{
 		// runs a full condition unless interupted
@@ -684,9 +637,9 @@ int main()
 		advanceExperimentCondition();		
 	}
 
-	// exports relevant JND data
+	// exports relevant ABS data
 	runExportUI(&thresholdOutput_);
-	
+
 	// // delete camera object to free memory
 	// camera.~VideoCap();
 
