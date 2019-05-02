@@ -1,3 +1,3 @@
-# AbsoluteThreshold_HAPEE
+# AbsoluteThreshold_AIMS
 
-This project runs off of the source code for the HAPEE testbed device and the MEL framework from the MAHI Lab.
+This project runs off of the source code for the AIMS testbed device and the MEL framework from the MAHI Lab.
