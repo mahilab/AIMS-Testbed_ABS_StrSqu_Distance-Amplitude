@@ -120,7 +120,7 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 	
 	// attach zero position for motors to return to after cue
 	posDes[0] = testPositions;
-	posDes[1] = { g_ZERO_ANGLE,g_ZERO_ANGLE };
+	posDes[1] = { g_ZERO_ANGLE, g_ZERO_ANGLE };
 }
 
 /*
@@ -367,7 +367,17 @@ void TrialList::exportList(string filepath, bool timestamp)
 	using namespace mel;
 
 	// create new data logger and prepare output trialList file
-	const vector<string> HEADER_NAMES = { "0=St", "1=StXsq(lo)", "1=StXsq(hi)"};
+	const vector<string> HEADER_NAMES = { 
+		"1=Str_No_Min",
+		"2=StrXSqu_Lo_Min",
+		"3=StrXSqu_Hi_Min",
+		"4=Str_No_Mid",
+		"5=StrXSqu_Lo_Mid",
+		"6=StrXSqu_Hi_Mid",
+		"7=Str_No_Max",
+		"8=StrXSqu_Lo_Max",
+		"9=StrXSqu_Hi_Max"
+		};
 	csv_write_row(filepath, HEADER_NAMES);
 
 	// output order of conditions in current test
@@ -375,22 +385,36 @@ void TrialList::exportList(string filepath, bool timestamp)
 	{
 		(double)conditions[0], 
 		(double)conditions[1],
-		(double)conditions[2]
+		(double)conditions[2],
+		(double)conditions[3], 
+		(double)conditions[4],
+		(double)conditions[5],
+		(double)conditions[6], 
+		(double)conditions[7],
+		(double)conditions[8],
 	};	
 	csv_append_row(filepath, outputRow);
 
 	// output order of all angle values in current test
-	// csv_append_rows(filepath, angles);
-	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
-	{
-		outputRow = { 
-			angles[0][i], 
-			angles[1][i],
-			angles[2][i]
-			};
-		csv_append_row(filepath, outputRow);
-		print_string(".");
-	}
+	array<array<double, g_NUMBER_CONDITIONS>, g_NUMBER_ANGLES * g_NUMBER_TRIALS> output;
+	for(int i=0; i < angles.size(); i++) {
+    	for(int j=0; j < angles[i].size(); j++) {
+    		output[j][i] = angles[i][j];
+   		}
+ 	}
+	csv_append_rows(filepath, output);
+
+	// output order of all angle values in current test
+	// for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
+	// {
+	// 	outputRow = { 
+	// 		angles[0][i], 
+	// 		angles[1][i],
+	// 		angles[2][i]
+	// 		};
+	// 	csv_append_row(filepath, outputRow);
+	// 	print_string(".");
+	// }
 	// creates space for next statement
 	print("");
 

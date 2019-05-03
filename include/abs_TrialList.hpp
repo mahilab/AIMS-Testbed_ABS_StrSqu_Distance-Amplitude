@@ -26,7 +26,7 @@ using namespace std;
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 const int	g_NUMBER_ANGLES = 7;
-const int 	g_NUMBER_CONDITIONS = 3;
+const int 	g_NUMBER_CONDITIONS = 9;
 const int	g_NUMBER_TRIALS = 50;
 const int 	g_INTERFERENCE_ANGLE_LOW = 36;
 const int 	g_INTERFERENCE_ANGLE_HIGH = 72;
@@ -45,8 +45,19 @@ class TrialList
 private:
 	// private array variables
 	array<array<double, g_NUMBER_ANGLES * g_NUMBER_TRIALS>, g_NUMBER_CONDITIONS> angles; // array of arrays that hold angle positions
-	array<string, g_NUMBER_CONDITIONS>	conditionNames = { "Stretch", "StretchXSqueeze(Low)", "StretchXSqueeze(High)" }; // array of conditions
-	array<int, g_NUMBER_CONDITIONS>		conditions = { 1,2,3 };
+	array<string, g_NUMBER_CONDITIONS>	conditionNames = 
+		{
+		"Stretch_None_Min",
+		"StretchXSqueeze_Low_Min",
+		"StretchXSqueeze_High_Min",
+		"Stretch_None_Mid",
+		"StretchXSqueeze_Low_Mid",
+		"StretchXSqueeze_High_Mid",
+		"Stretch_None_Max",
+		"StretchXSqueeze_Low_Max",
+		"StretchXSqueeze_High_Max"
+		}; // array of conditions
+	array<int, g_NUMBER_CONDITIONS>		conditions = { 1,2,3,4,5,6,7,8,9 };
 	
 	// random device variable
 	random_device rd; // create random generator
