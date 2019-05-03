@@ -332,8 +332,7 @@ Imports trialList from a saved file
 bool TrialList::importList(string filepath)
 {
 	using namespace mel;
-	
-	
+		
 	// imports condition information from trialList file
 	if(!csv_read_row(filepath,conditions,1,0)) return false;
 
@@ -367,7 +366,8 @@ void TrialList::exportList(string filepath, bool timestamp)
 	using namespace mel;
 
 	// create new data logger and prepare output trialList file
-	const vector<string> HEADER_NAMES = { 
+	const vector<string> HEADER_NAMES = 
+	{ 
 		"1=Str_No_Min",
 		"2=StrXSqu_Lo_Min",
 		"3=StrXSqu_Hi_Min",
@@ -377,7 +377,7 @@ void TrialList::exportList(string filepath, bool timestamp)
 		"7=Str_No_Max",
 		"8=StrXSqu_Lo_Max",
 		"9=StrXSqu_Hi_Max"
-		};
+	};
 	csv_write_row(filepath, HEADER_NAMES);
 
 	// output order of conditions in current test
@@ -391,7 +391,7 @@ void TrialList::exportList(string filepath, bool timestamp)
 		(double)conditions[5],
 		(double)conditions[6], 
 		(double)conditions[7],
-		(double)conditions[8],
+		(double)conditions[8]
 	};	
 	csv_append_row(filepath, outputRow);
 
