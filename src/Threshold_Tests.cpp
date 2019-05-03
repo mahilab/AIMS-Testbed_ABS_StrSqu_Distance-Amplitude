@@ -307,6 +307,9 @@ void importTrialList()
 		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
 	}
 	print("");
+	
+	int		inputVal = 0;
+	cin		>> inputVal;
 }
 
 /*
@@ -559,12 +562,6 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 	fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
 	filepath = g_DATA_PATH + "/data/trialList" + fileName;
 	g_trialList.exportList(filepath, g_TIMESTAMP);
-
-	// final messages before end of program
-	print("trialList exported...");
-
-	// creates space for next statement
-	print("");
 }
 
 

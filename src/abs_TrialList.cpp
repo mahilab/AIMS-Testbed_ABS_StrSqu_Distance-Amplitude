@@ -332,42 +332,30 @@ Imports trialList from a saved file
 bool TrialList::importList(string filepath)
 {
 	using namespace mel;
-	// create prepare output trialList file
-	vector<vector<double>> output;
-	// if (!csv_read_rows(filepath, output, 0, 1))
-	// {
-	// 	print("error");
-	// 	return false;
-	// }
+	
+	
 	// imports condition information from trialList file
-	print("here da output");
-	for(int i = 1; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS + 1; i++)
-	{
-		vector<double> outputRow;
-		csv_read_row(filepath, outputRow, i, 0);
-		print(outputRow[0]);
-		print(i);
-	}
-	// vector<double>
-	// csv_read_row(filepath, row, 0, 1);
-    // print(row);
-		
-	// vector<double> outputRow = output[0];
-	// print("here");
-	// for (int j = 0; j < outputRow.size(); j++)
-	// {
-	// 	conditions[j] = (int)outputRow[j];
-	// }
+	if(!csv_read_row(filepath,conditions,1,0)) return false;
 
-	// // loads trialList file from import into class
-	// for (int i = 0; i < output.size() - 2; i++)
-	// {
-	// 	outputRow = output[i+2];
-	// 	for (int j = 0; j < outputRow.size(); j++)
-	// 	{
-	// 		angles[j][i] = (int)outputRow[j];
-	// 	}
-	// }
+	for (int j = 0; j < g_NUMBER_CONDITIONS; j++)
+	{
+		print_string(to_string(conditions[j]) + ",");
+	}
+	print(" ");
+
+	// loads trialList file from import into class
+	array<array<double, g_NUMBER_CONDITIONS>, g_NUMBER_ANGLES * g_NUMBER_TRIALS> output;
+	if (!csv_read_rows(filepath, output, 2, 0)) return false;
+	
+	for (int i = 0; i < g_NUMBER_ANGLES * g_NUMBER_TRIALS; i++)
+	{
+		for (int j = 0; j < g_NUMBER_CONDITIONS; j++)
+		{
+			angles[j][i] = output[i][j];
+			// print_string(to_string(angles[j][i]) + ",");
+		}			
+		// print(" ");
+	}
 	return true;
 }
 
@@ -383,15 +371,16 @@ void TrialList::exportList(string filepath, bool timestamp)
 	csv_write_row(filepath, HEADER_NAMES);
 
 	// output order of conditions in current test
-	vector<double> outputRow = {
+	vector<double> outputRow = 
+	{
 		(double)conditions[0], 
 		(double)conditions[1],
 		(double)conditions[2]
-		};
-	
+	};	
 	csv_append_row(filepath, outputRow);
 
 	// output order of all angle values in current test
+	// csv_append_rows(filepath, angles);
 	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i++)
 	{
 		outputRow = { 
@@ -400,5 +389,14 @@ void TrialList::exportList(string filepath, bool timestamp)
 			angles[2][i]
 			};
 		csv_append_row(filepath, outputRow);
+		print_string(".");
 	}
+	// creates space for next statement
+	print("");
+
+	// final messages before end of program
+	print("TrialList successfuly exported!");
+
+	// creates space for next statement
+	print("");
 }
