@@ -105,25 +105,9 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 	// determine the angles that will be used for the test for squeeze/stretch
 	array<double, 2> testPositions;
 
-	// generates test position array and reference position array
-	int condNum = getCondNum();
-	mel::print(condNum);
-	if (condNum >= 0 && condNum < 3)
-	{
-		testPositions = { getAngleNumber(con, ang), g_ZERO_ANGLE };
-	}
-	else if (condNum >= 3 && condNum < 6)
-	{
-		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };	
-	}
-	else if (condNum >= 6 && condNum < 9)
-	{
-		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_HIGH };
-	}
-	else
-	{
-		testPositions = { g_ZERO_ANGLE, g_ZERO_ANGLE };
-	}
+	// generates test position array and test position array
+	double interferenceAngle = getInterference();
+	testPositions = { getAngleNumber(con, ang), interferenceAngle };
 	
 	// attach zero position for motors to return to after cue
 	posDes[0] = testPositions;
@@ -170,11 +154,12 @@ double TrialList::getAngleNumber()
 /*
 Calls private function to get the interference angle
 */
-int TrialList::getInterference(int interferenceFlag)
+int TrialList::getInterference()
 {
-	if (interferenceFlag == 0) return g_ZERO_ANGLE;
-	else if (interferenceFlag == 1) return g_INTERFERENCE_ANGLE_LOW;
-	else return g_INTERFERENCE_ANGLE_HIGH;	
+	int condNum = getCondNum();	
+	if (condNum >= 3 && condNum < 6) return g_INTERFERENCE_ANGLE_LOW;	
+	else if (condNum >= 6 && condNum < 9) return g_INTERFERENCE_ANGLE_HIGH;
+	else return g_ZERO_ANGLE;		
 }
 
 /*

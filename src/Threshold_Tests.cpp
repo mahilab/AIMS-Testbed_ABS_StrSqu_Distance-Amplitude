@@ -313,31 +313,33 @@ trialList to the experiment.
 */
 void importRecordABS(vector<vector<double>>* thresholdOutput_)
 {
-
 	// declares variables for filename and output
 	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
 	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
-	vector<vector<double>> output;
 
-	// attempts to import ABS record for subject
-	if (csv_read_rows(filepath, output, 0, 0))
+	// defines relevant variables for data import
+	vector<double>	outputRow(6);
+	int 			row = 1;
+	const int		ITERATION_NUM_INDEX = 0;
+	const int		ANGLE_NUM_INDEX = 2;
+
+	// attempts to import ABS record into experiment
+	print(outputRow.size());
+	int input;
+	cin >> input;
+	while (!csv_read_row(filepath, outputRow, row, 0))
 	{
-		// defines relevant variables for data import
-		vector<double>	outputRow;
-		const int		ITERATION_NUM_INDEX = 0;
-		const int		ANGLE_NUM_INDEX = 2;
+		print("Output row: " + row);
+		thresholdOutput_->push_back(outputRow);
+		row ++;
+		print(row);
+		int input;
+		cin >> input;
+	}
+	print("File read");
 
-		// loads ABS record into experiment
-		print(to_string(output.size()));
-		for (int i = 0; i < output.size(); i++)
-
-		{
-			print("attempting output row");
-			outputRow = output.at(i);
-			print("created output row");
-			thresholdOutput_->push_back(outputRow);
-		}
-
+	if (row != 1)
+	{
 		// confirms import with experimenter 
 		g_trialList.setCombo((int)outputRow[ITERATION_NUM_INDEX] + 1, (int)outputRow[ANGLE_NUM_INDEX] + 1);
 		print("Subject " + to_string(g_subject) + "'s ABS record has been successfully imported");
@@ -371,7 +373,10 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 		}
 		print("Import Accepted.");
 	}
-	else print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
+	else
+	{	
+		print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
+	}
 
 	// makes space for next print statements
 	print("");
@@ -411,7 +416,7 @@ void recordExperimentABS(vector<vector<double>>* thresholdOutput_)
 	// add current row for ABS testing to the buffer
 	vector<double> outputRow = { 
 		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
-		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterference(g_trialList.getCondNum()),
+		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterference(),
 		(double)g_trialList.getAngleNumber(),		(double)inputVal 
 	};
 	thresholdOutput_->push_back(outputRow);

@@ -82,7 +82,7 @@ public:
 	string  getTrialName();
 	string  getConditionName();
 	double	getAngleNumber();
-	int		getInterference(int interferenceFlag);
+	int		getInterference();
 	void	getTestPositions(array<array<double, 2>,2> &posDes);
 	int		getIterationNumber();
 	string	getComboNames(); // get full list of combination orderings
