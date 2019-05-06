@@ -108,15 +108,15 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 	// generates test position array and reference position array
 	int condNum = getCondNum();
 	mel::print(condNum);
-	if (condNum == 0 || condNum == 3 || condNum == 6)
+	if (condNum >= 0 && condNum < 3)
 	{
 		testPositions = { getAngleNumber(con, ang), g_ZERO_ANGLE };
 	}
-	else if (condNum == 1 || condNum == 4 || condNum == 7)
+	else if (condNum >= 3 && condNum < 6)
 	{
 		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };	
 	}
-	else if (condNum == 2 || condNum == 5 || condNum == 8)
+	else if (condNum >= 6 && condNum < 9)
 	{
 		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_HIGH };
 	}
