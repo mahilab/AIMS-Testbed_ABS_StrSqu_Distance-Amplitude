@@ -41,8 +41,9 @@ TrialList::TrialList()
 		for (int j = 0; j < g_NUMBER_ANGLES; j++) 
 		{
 			conditionAngles[i + j] = g_DEFAULT_ANGLES[j];
+			// mel::print_string(to_string(conditionAngles[i+j]) + ",");
 		}
-		
+		// mel::print("");		
 	}
 	angles.fill(conditionAngles);
 
@@ -105,17 +106,22 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 	array<double, 2> testPositions;
 
 	// generates test position array and reference position array
-	switch (getCondNum())
+	int condNum = getCondNum();
+	if (condNum == 0 || 3 || 6)
 	{
-	case 0:
 		testPositions = { getAngleNumber(con, ang), g_ZERO_ANGLE };
-		break;
-	case 1:
-		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };
-		break;
-	case 2:
+	}
+	else if (condNum == 1 || 4 || 7)
+	{
+	testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };	
+	}
+	else if (condNum == 2 || 5 || 9)
+	{
 		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_HIGH };
-		break;
+	}
+	else
+	{
+		testPositions = { g_ZERO_ANGLE, g_ZERO_ANGLE };
 	}
 	
 	// attach zero position for motors to return to after cue
@@ -165,19 +171,9 @@ Calls private function to get the interference angle
 */
 int TrialList::getInterference(int interferenceFlag)
 {
-	if (interferenceFlag == 0)
-	{
-		return g_ZERO_ANGLE;
-	}
-	else if (interferenceFlag == 1)
-	{
-		return g_INTERFERENCE_ANGLE_LOW;
-	}
-	else
-	{
-		return g_INTERFERENCE_ANGLE_HIGH;
-	}
-	
+	if (interferenceFlag == 0) return g_ZERO_ANGLE;
+	else if (interferenceFlag == 1) return g_INTERFERENCE_ANGLE_LOW;
+	else return g_INTERFERENCE_ANGLE_HIGH;	
 }
 
 /*

@@ -31,7 +31,7 @@ const int	g_NUMBER_TRIALS = 50;
 const int 	g_INTERFERENCE_ANGLE_LOW = 36;
 const int 	g_INTERFERENCE_ANGLE_HIGH = 72;
 const int 	g_ZERO_ANGLE = 0;
-const array<double, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = { 24, 24, 24, 24, 24, 24, 24 };
+const array<double, g_NUMBER_ANGLES> g_DEFAULT_ANGLES = {24, 24, 24, 24, 24, 24, 24};
 const array<double, g_NUMBER_ANGLES> g_Stretch_Angles = {0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08};
 const array<double, g_NUMBER_ANGLES> g_Stretch_Squeeze_Lo_Angles = {18, 24, 30, 36, 42, 48, 54};	
 const array<double, g_NUMBER_ANGLES> g_Stretch_Squeeze_Hi_Angles = {24, 40, 56, 72, 88, 104, 120};	
@@ -57,7 +57,7 @@ private:
 		"StretchXSqueeze_Low_Max",
 		"StretchXSqueeze_High_Max"
 		}; // array of conditions
-	array<int, g_NUMBER_CONDITIONS>		conditions = { 1,2,3,4,5,6,7,8,9 };
+	array<int, g_NUMBER_CONDITIONS>		conditions = { 0,1,2,3,4,5,6,7,8 };
 	
 	// random device variable
 	random_device rd; // create random generator
