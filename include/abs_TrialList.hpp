@@ -48,13 +48,13 @@ private:
 	array<string, g_NUMBER_CONDITIONS>	conditionNames = 
 		{
 		"Stretch_None_Min",
-		"StretchXSqueeze_Low_Min",
-		"StretchXSqueeze_High_Min",
 		"Stretch_None_Mid",
-		"StretchXSqueeze_Low_Mid",
-		"StretchXSqueeze_High_Mid",
 		"Stretch_None_Max",
+		"StretchXSqueeze_Low_Min",
+		"StretchXSqueeze_Low_Mid",
 		"StretchXSqueeze_Low_Max",
+		"StretchXSqueeze_High_Min",
+		"StretchXSqueeze_High_Mid",
 		"StretchXSqueeze_High_Max"
 		}; // array of conditions
 	array<int, g_NUMBER_CONDITIONS>		conditions = { 0,1,2,3,4,5,6,7,8 };

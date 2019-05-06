@@ -54,11 +54,11 @@ using namespace std;
 int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in between cues
 const int	 g_CONFIRM_VALUE(123);
 const bool	 g_TIMESTAMP(false);
-const string g_DATA_PATH("C:/Users/zaz2/Box/Research/Wearable Multi-Scale Haptics Projects/AIMS Testbed/Absolute_Threshold_Tests"); //file path to main project files
+const string g_DATA_PATH("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to main project files
 																										 
 // subject specific variables
 TrialList	 g_trialList;
-int			 g_subject		= 0;
+int			 g_subject = 0;
 
 // actual motor positions variable
 double		 g_motorPos[2];
@@ -250,7 +250,6 @@ void runMovementTrial(array<array<double,2>,2> &posDes/*array<array<int, 2>, 4> 
 	// saves and exports trial data
 	csv_write_row(filepath, HEADER_NAMES);
 	csv_append_rows(filepath, movementOutput);
-	//print(fileName + "Output Successfull");
 }
 
 
@@ -501,6 +500,8 @@ void runExperimentUI(DaqNI &daqNI,
 
 		// get next experiment cue
 		g_trialList.getTestPositions(posDes);
+
+		// prints current desired test position for debug purposes
 		print(posDes[0]);
 		
 		// provides cue to user

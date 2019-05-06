@@ -107,15 +107,16 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 
 	// generates test position array and reference position array
 	int condNum = getCondNum();
-	if (condNum == 0 || 3 || 6)
+	mel::print(condNum);
+	if (condNum == 0 || condNum == 3 || condNum == 6)
 	{
 		testPositions = { getAngleNumber(con, ang), g_ZERO_ANGLE };
 	}
-	else if (condNum == 1 || 4 || 7)
+	else if (condNum == 1 || condNum == 4 || condNum == 7)
 	{
-	testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };	
+		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_LOW };	
 	}
-	else if (condNum == 2 || 5 || 9)
+	else if (condNum == 2 || condNum == 5 || condNum == 8)
 	{
 		testPositions = { getAngleNumber(con, ang), g_INTERFERENCE_ANGLE_HIGH };
 	}
@@ -354,15 +355,15 @@ void TrialList::exportList(string filepath, bool timestamp)
 	// create new data logger and prepare output trialList file
 	const vector<string> HEADER_NAMES = 
 	{ 
-		"1=Str_No_Min",
-		"2=StrXSqu_Lo_Min",
-		"3=StrXSqu_Hi_Min",
-		"4=Str_No_Mid",
-		"5=StrXSqu_Lo_Mid",
-		"6=StrXSqu_Hi_Mid",
-		"7=Str_No_Max",
-		"8=StrXSqu_Lo_Max",
-		"9=StrXSqu_Hi_Max"
+		"0=Str_No_Min",
+		"1=Str_No_Mid",
+		"2=Str_No_Max",
+		"3=StrXSqu_Lo_Min",
+		"4=StrXSqu_Lo_Mid",
+		"5=StrXSqu_Lo_Max",
+		"6=StrXSqu_Hi_Min",
+		"7=StrXSqu_Hi_Mid",
+		"8=StrXSqu_Hi_Max"
 	};
 	csv_write_row(filepath, HEADER_NAMES);
 
