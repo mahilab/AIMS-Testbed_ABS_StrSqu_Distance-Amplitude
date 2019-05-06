@@ -163,17 +163,6 @@ double TrialList::getAngleNumber()
 /*
 Calls private function to get the interference angle
 */
-// ****************** ADD IN INTEREFENCE LOW AND INTERFERENCE HIGH ******************
-/*
-int TrialList::getReferenceAngle()
-{
-	return g_REFERENCE_ANGLE;
-}
-*/
-
-/*
-Calls private function to get the interference angle
-*/
 int TrialList::getInterference(int interferenceFlag)
 {
 	if (interferenceFlag == 0)
@@ -336,11 +325,12 @@ bool TrialList::importList(string filepath)
 	// imports condition information from trialList file
 	if(!csv_read_row(filepath,conditions,1,0)) return false;
 
-	for (int j = 0; j < g_NUMBER_CONDITIONS; j++)
-	{
-		print_string(to_string(conditions[j]) + ",");
-	}
-	print(" ");
+	// prints condition labels for debug
+	// for (int j = 0; j < g_NUMBER_CONDITIONS; j++)
+	// {
+	// 	print_string(to_string(conditions[j]) + ",");
+	// }
+	// print(" ");
 
 	// loads trialList file from import into class
 	array<array<double, g_NUMBER_CONDITIONS>, g_NUMBER_ANGLES * g_NUMBER_TRIALS> output;

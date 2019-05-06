@@ -51,7 +51,6 @@ using namespace std;
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 // constant variables 
-
 int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in between cues
 const int	 g_CONFIRM_VALUE(123);
 const bool	 g_TIMESTAMP(false);
@@ -307,9 +306,6 @@ void importTrialList()
 		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
 	}
 	print("");
-	
-	int		inputVal = 0;
-	cin		>> inputVal;
 }
 
 /*
@@ -318,13 +314,14 @@ trialList to the experiment.
 */
 void importRecordABS(vector<vector<double>>* thresholdOutput_)
 {
+
 	// declares variables for filename and output
 	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
 	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
 	vector<vector<double>> output;
 
 	// attempts to import ABS record for subject
-	if (csv_read_rows(filepath, output))
+	if (csv_read_rows(filepath, output, 0, 0))
 	{
 		// defines relevant variables for data import
 		vector<double>	outputRow;
@@ -332,9 +329,12 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 		const int		ANGLE_NUM_INDEX = 2;
 
 		// loads ABS record into experiment
-		for (int i = 0; i < output.size() - 1; i++)
+		print(to_string(output.size()));
+		for (int i = 0; i < output.size(); i++)
 		{
-			outputRow = output[i + 1];
+			print("attempting output row");
+			outputRow = output.at(i);
+			print("created output row");
 			thresholdOutput_->push_back(outputRow);
 		}
 
@@ -538,11 +538,9 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = { 
-		"Iteration",			"Condition (0=St 1=StXSq(Lo) 2=StxSq(Hi))",
-		"AngCurr",				"Reference Angle",
-		"Comparision Angle",	"Greater Cue (0=Reference 1=Comparison)",
-		"User Direct Input (1=First Cue Greater 2=Second Cue Greater)",
-		"Cue Order (0=Test First 1=Ref First)" 
+		"Iteration",			"Condition",
+		"AngCurr",				"Interference Angle",
+		"Test Angle",			"Detected (1=Detected 2=Not Detected)"
 	};
 
 	// saves the ABS data
