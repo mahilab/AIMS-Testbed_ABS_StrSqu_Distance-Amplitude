@@ -41,6 +41,7 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 // other misc standard libraries
 #include <queue>
 #include <thread>
+#include <string>
 
 // namespace for MEL
 using namespace mel;
@@ -318,30 +319,36 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
 
 	// defines relevant variables for data import
-	vector<double>	outputRow(6);
-	int 			row = 1;
-	const int		ITERATION_NUM_INDEX = 0;
-	const int		ANGLE_NUM_INDEX = 2;
+	vector<vector<double>>		input;
+	vector<double> 				inputRow;
+	const int					ROW_OFFSET = 1;
+	const int					ITERATION_NUM_INDEX = 0;
+	const int					ANGLE_NUM_INDEX = 2;
 
-	// attempts to import ABS record into experiment
-	print(outputRow.size());
-	int input;
-	cin >> input;
-	while (!csv_read_row(filepath, outputRow, row, 0))
+    ifstream file(filepath);
+    file.precision(6);
+    if (file.is_open())
 	{
-		print("Output row: " + row);
-		thresholdOutput_->push_back(outputRow);
-		row ++;
-		print(row);
-		int input;
-		cin >> input;
-	}
-	print("File read");
+		string line_string;
+		int row_idx = 0;
+		while (getline(file, line_string))
+		{
+			print(row_idx);
 
-	if (row != 1)
-	{
+			if (row_idx > ROW_OFFSET)
+			{
+				istringstream line_stream(line_string);
+				string value_string;
+				
+				while (getline(line_stream, value_string, ','))
+					inputRow.push_back(stold(value_string));
+				input.push_back(inputRow);
+			}
+			row_idx++;
+		}
+
 		// confirms import with experimenter 
-		g_trialList.setCombo((int)outputRow[ITERATION_NUM_INDEX] + 1, (int)outputRow[ANGLE_NUM_INDEX] + 1);
+		g_trialList.setCombo((int)inputRow[ITERATION_NUM_INDEX] + 1, (int)inputRow[ANGLE_NUM_INDEX] + 1);
 		print("Subject " + to_string(g_subject) + "'s ABS record has been successfully imported");
 		print("Current trial detected @");
 		print("Iteration: " + to_string(g_trialList.getIterationNumber()));
@@ -374,9 +381,67 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 		print("Import Accepted.");
 	}
 	else
-	{	
+	{		
+		print("File could not be opened");
 		print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
 	}
+	
+	
+	
+	// // attempts to import ABS record into experiment
+	// print(outputRow.size());
+	// int input;
+	// cin >> input;
+	// while (!csv_read_row(filepath, outputRow, row, 0))
+	// {
+	// 	print("Output row: " + row);
+	// 	thresholdOutput_->push_back(outputRow);
+	// 	row ++;
+	// 	print(row);
+	// 	int input;
+	// 	cin >> input;
+	// }
+	// print("File read");
+
+	// if (row != 1)
+	// {
+	// 	// confirms import with experimenter 
+	// 	g_trialList.setCombo((int)outputRow[ITERATION_NUM_INDEX] + 1, (int)outputRow[ANGLE_NUM_INDEX] + 1);
+	// 	print("Subject " + to_string(g_subject) + "'s ABS record has been successfully imported");
+	// 	print("Current trial detected @");
+	// 	print("Iteration: " + to_string(g_trialList.getIterationNumber()));
+	// 	print("Condition:" + to_string(g_trialList.getCondNum()) + " - " + g_trialList.getConditionName());
+	// 	print("Angle:" + to_string(g_trialList.getAngCurr()) + " - " + to_string(g_trialList.getAngleNumber()));
+		
+	// 	// waits for confirmation of import
+	// 	print("Is this correct? Please type CONFIRM_VALUE to confirm...");
+	// 	int		inputVal = 0;
+	// 	cin		>> inputVal;
+
+	// 	// loops until import is confirmed 
+	// 	while (inputVal != g_CONFIRM_VALUE)
+	// 	{
+	// 		print("Import Rejected. Please input desired iteration index number:");
+	// 		cin		>> inputVal;
+	// 		g_trialList.setCombo(inputVal, g_trialList.getAngCurr());
+
+	// 		print("Please input desired angle index number:");
+	// 		cin		>> inputVal;
+	// 		g_trialList.setCombo(g_trialList.getIterationNumber(), inputVal);
+
+	// 		print("Current trial detected @");
+	// 		print("Iteration: " + to_string(g_trialList.getIterationNumber()));
+	// 		print("Condition:" + to_string(g_trialList.getCondNum()) + " - " + g_trialList.getConditionName());
+	// 		print("Angle:" + to_string(g_trialList.getAngCurr()) + " - " + to_string(g_trialList.getAngleNumber()));
+	// 		print("Is this correct? Please type CONFIRM_VALUE to confirm.");
+	// 		cin		>> inputVal;
+	// 	}
+	// 	print("Import Accepted.");
+	// }
+	// else
+	// {	
+	// 	print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
+	// }
 
 	// makes space for next print statements
 	print("");
