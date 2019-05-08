@@ -35,27 +35,31 @@ Constructor for the TrialList class
 TrialList::TrialList()
 {
 	// fill out trialArrs with angles
-	array<double, g_NUMBER_ANGLES*g_NUMBER_TRIALS> conditionAngles;
-	for (int i = 0; i < g_NUMBER_ANGLES*g_NUMBER_TRIALS; i = i + g_NUMBER_ANGLES) 
+	for (int condNum = 0; condNum < g_NUMBER_CONDITIONS; condNum++)
 	{
-		for (int j = 0; j < g_NUMBER_ANGLES; j++) 
+		for (int j = 0; j < g_NUMBER_ANGLES*g_NUMBER_TRIALS; j += g_NUMBER_ANGLES) 
 		{
-			conditionAngles[i + j] = g_DEFAULT_ANGLES[j];
-			// mel::print_string(to_string(conditionAngles[i+j]) + ",");
+			for (int k = 0; k < g_NUMBER_ANGLES; k++) 
+			{
+				double nxtAngle;
+				if (condNum >= 3 && condNum < 6) nxtAngle = g_Stretch_Squeeze_Lo_Angles[k];	
+				else if (condNum >= 6 && condNum < 9) nxtAngle = g_Stretch_Squeeze_Hi_Angles[k];
+				else nxtAngle = g_Stretch_Angles[k];
+				
+				angles[condNum][j + k] = nxtAngle;
+			}
 		}
-		// mel::print("");		
 	}
-	angles.fill(conditionAngles);
 
 	// create random range
 	auto rng = default_random_engine{ rd() };
 
-	// generate random ordering  of angles for each of the conditions
+	// generate random ordering of angles in each of the conditions
 	for (int i = 0; i < g_NUMBER_CONDITIONS; i++) {
 		shuffle(angles[i].begin(), angles[i].end(), rng);
 	}
 
-	// generate random ordering of angles by condition
+	// generate random ordering of conditions
 	shuffle(conditions.begin(), conditions.end(), rng);
 }
 
@@ -91,7 +95,7 @@ Outputs current angle number
 */
 double TrialList::getAngleNumber(int con, int ang)
 {
-	return angles[con][ang];
+	return angles[conditions[con]][ang];
 }
 
 /*
@@ -148,7 +152,7 @@ Calls private function to get current angle number
 */
 double TrialList::getAngleNumber()
 {
-	return angles[conCurr][angCurr];
+	return angles[conditions[conCurr]][angCurr];
 }
 
 /*

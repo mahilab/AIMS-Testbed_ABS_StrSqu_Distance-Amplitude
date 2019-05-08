@@ -27,7 +27,7 @@ using namespace std;
 ************************************************************/
 const int	g_NUMBER_ANGLES = 7;
 const int 	g_NUMBER_CONDITIONS = 9;
-const int	g_NUMBER_TRIALS = 50;
+const int	g_NUMBER_TRIALS = 1;
 const int 	g_INTERFERENCE_ANGLE_LOW = 36;
 const int 	g_INTERFERENCE_ANGLE_HIGH = 72;
 const int 	g_ZERO_ANGLE = 0;
