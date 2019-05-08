@@ -50,17 +50,6 @@ TrialList::TrialList()
 			}
 		}
 	}
-
-	// create random range
-	auto rng = default_random_engine{ rd() };
-
-	// generate random ordering of angles in each of the conditions
-	for (int i = 0; i < g_NUMBER_CONDITIONS; i++) {
-		shuffle(angles[i].begin(), angles[i].end(), rng);
-	}
-
-	// generate random ordering of conditions
-	shuffle(conditions.begin(), conditions.end(), rng);
 }
 
 /*
@@ -69,6 +58,7 @@ Destructor for the TrialList class
 TrialList::~TrialList()
 {
 }
+
 
 /***********************************************************
 ******************* PRIVATE FUNCTIONS **********************
@@ -124,6 +114,24 @@ Outputs current iteration number as an int
 int TrialList::getIterationNumber(int con, int ang)
 {
 	return (g_NUMBER_ANGLES*g_NUMBER_TRIALS*con) + (ang + 1);
+}
+
+
+/***********************************************************
+****************** RANDOMIZER FUNCTION *********************
+************************************************************/
+void TrialList::scramble()
+{
+	// create random range
+	auto rng = default_random_engine{ rd() };
+
+	// generate random ordering of angles in each of the conditions
+	for (int i = 0; i < g_NUMBER_CONDITIONS; i++) {
+		shuffle(angles[i].begin(), angles[i].end(), rng);
+	}
+
+	// generate random ordering of conditions
+	shuffle(conditions.begin(), conditions.end(), rng);
 }
 
 

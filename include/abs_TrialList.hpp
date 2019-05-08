@@ -78,6 +78,9 @@ public:
 	TrialList();
 	~TrialList();
 
+	// randomizer
+	void 	scramble();
+
 	// read various combinations names
 	string  getTrialName();
 	string  getConditionName();

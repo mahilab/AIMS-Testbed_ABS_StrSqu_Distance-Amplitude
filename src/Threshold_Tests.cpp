@@ -26,17 +26,15 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 // libraries for TrialList Class
 #include "abs_TrialList.hpp"
 
-// libraries for VideoCap Class
-// #include "VideoCap.hpp"
-
 // libraries for MEL
 #include <MEL/Core/Console.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Logging/Csv.hpp>
+#include <MEL/Utility/System.hpp>
 #include <MEL/Utility/Mutex.hpp>
+#include <MEL/Utility/Options.hpp>
 #include <MEL/Devices/AtiSensor.hpp>
 #include <MEL/Devices/Windows/Keyboard.hpp>
-#include <MEL/Utility/System.hpp>
 
 // other misc standard libraries
 #include <queue>
@@ -303,6 +301,7 @@ void importTrialList()
 	}
 	else
 	{
+		g_trialList.scramble();
 		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
 	}
 	print("");
@@ -436,7 +435,7 @@ void recordExperimentABS(vector<vector<double>>* thresholdOutput_)
 	// add current row for ABS testing to the buffer
 	vector<double> outputRow = { 
 		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
-		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterference(),
+		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterferenceAngle(),
 		(double)g_trialList.getAngleNumber(),		(double)inputVal 
 	};
 	thresholdOutput_->push_back(outputRow);
@@ -608,7 +607,7 @@ bool my_handler(CtrlEvent event) {
 /*
 Main function of the program references all other functions
 */
-int main()
+int main(int argc, char* argv[])
 {
 	// registers the mel handler to exit the program using Ctrl-c
 	register_ctrl_handler(my_handler);
@@ -618,12 +617,8 @@ int main()
 	AtiSensor				atiA, atiB;				// create the ATI FT Sensors
 	MaxonMotor				motorA, motorB;			// create new motors
 	vector<vector<double>>	thresholdOutput_;		// creates pointer to the output data file for the experiment
-	// VideoCap	camera(1920,1080,30);	// create new camera object for this trial 
-										// with a resolution of 960, 720p and 30 fps
-
-	/*
-	Sensor Initialization
-	*/
+	
+	// Sensor Initialization
 	// calibrate the FT sensors 
 	atiA.load_calibration("FT26062.cal");
 	atiB.load_calibration("FT26061.cal");
@@ -637,33 +632,78 @@ int main()
 	atiA.zero();
 	atiB.zero();
 	
-	/*
-	Motor Initialization
-	*/
+	// Motor Initialization
 	motorInitialize(motorA, (char*)"USB0");
 	motorInitialize(motorB, (char*)"USB1");
-		
-	/* 
-	User Interaction Portion of Program
-	*/
-	// import relevant data or creates new data structures
-	runImportUI(&thresholdOutput_);
 
-	// runs ABS experimental protocol automatically
-	while (!g_stop)
+
+	// Defines and parses console options
+    Options options("AIMS_Control.exe", "AIMS Testbed Control");
+    options.add_options()
+        ("s,staircase", "Opens staircase method control")
+        ("h,help", "Prints this Help Message");
+    auto input = options.parse(argc, argv);
+
+    // print help message if requested
+    if (input.count("h") > 0) {
+        print(options.help());
+        return EXIT_SUCCESS;
+    }
+
+	// runs staircase method protocol if selected
+	if (input.count("s") > 0)
 	{
-		// runs a full condition unless interupted
-		runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput_);
+		print("Beginning staircase method control...");
+		print("");
 
-		// advance to the next condition if another condition exists
-		advanceExperimentCondition();		
+		print("Please select desired condition to test:");
+		print("0) Stretch with no interference and minimum distance between cues");
+		print("1) Stretch with no interference and medium distance between cues");
+		print("2) Stretch with no interference and maximum distance between cues");
+		print("3) Stretch with low squeeze interference and minimum distance between cues");
+		print("4) Stretch with low squeeze interference and medium distance between cues");
+		print("5) Stretch with low squeeze interference and maximum distance between cues");
+		print("6) Stretch with high squeeze interference and minimum distance between cues");
+		print("7) Stretch with high squeeze interference and medium distance between cues");
+		print("8) Stretch with high squeeze interference and maximum distance between cues");
+		 
+		int inputVal;
+		cin >> inputVal;
+		switch (inputVal)
+			case 0: 
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+			case 6:
+			case 7:
+			case 8:
+		print("here");
 	}
 
-	// exports relevant ABS data
-	runExportUI(&thresholdOutput_);
+	// runs standard method of constants protocol in all other cases
+	else 
+	{
+		/* 
+		User Interaction Portion of Program
+		*/
+		// import relevant data or creates new data structures
+		runImportUI(&thresholdOutput_);
 
-	// // delete camera object to free memory
-	// camera.~VideoCap();
+		// runs ABS experimental protocol automatically
+		while (!g_stop)
+		{
+			// runs a full condition unless interupted
+			runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput_);
+
+			// advance to the next condition if another condition exists
+			advanceExperimentCondition();		
+		}
+
+		// exports relevant ABS data
+		runExportUI(&thresholdOutput_);
+	}
 
 	print("Press Escape to end program...");
 	Keyboard::wait_for_key(Key::Escape);
