@@ -653,6 +653,7 @@ int main(int argc, char* argv[])
 	// runs staircase method protocol if selected
 	if (input.count("s") > 0)
 	{
+		print("");
 		print("Beginning staircase method control...");
 		print("");
 
@@ -703,11 +704,9 @@ int main(int argc, char* argv[])
 
 		// exports relevant ABS data
 		runExportUI(&thresholdOutput_);
-	}
+	}s
 
-	print("Press Escape to end program...");
-	Keyboard::wait_for_key(Key::Escape);
-	print("Escape pressed! Exiting application...");
+	print("Exiting application...");
 	
 	return EXIT_SUCCESS;
 }
