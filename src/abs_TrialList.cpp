@@ -110,7 +110,7 @@ void TrialList::getTestPositions(array<array<double,2>,2> &posDes, int con, int 
 	array<double, 2> testPositions;
 
 	// generates test position array and test position array
-	double interferenceAngle = getInterference();
+	double interferenceAngle = getInterferenceAngle();
 	testPositions = { getAngleNumber(con, ang), interferenceAngle };
 	
 	// attach zero position for motors to return to after cue
@@ -158,7 +158,7 @@ double TrialList::getAngleNumber()
 /*
 Calls private function to get the interference angle
 */
-int TrialList::getInterference()
+int TrialList::getInterferenceAngle()
 {
 	int condNum = getCondNum();	
 	if (condNum >= 3 && condNum < 6) return g_INTERFERENCE_ANGLE_LOW;	
