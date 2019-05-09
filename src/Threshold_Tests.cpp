@@ -54,7 +54,10 @@ int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in betwee
 const int	 g_CONFIRM_VALUE(123);
 const bool	 g_TIMESTAMP(false);
 const string g_DATA_PATH("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to main project files
-																										 
+
+// variable to track protocol being run						
+bool		 g_staircase(false);
+
 // subject specific variables
 TrialList	 g_trialList;
 int			 g_subject = 0;
@@ -149,9 +152,9 @@ void motorPosGet(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes
 Measures force/torque data, motor position data and time information
 during the motor movement
 */
-void recordMovementTrial(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes*/, DaqNI &daqNI,
-						 AtiSensor &atiA,				AtiSensor &atiB,
-						 MaxonMotor &motorA,			MaxonMotor &motorB,
+void recordMovementTrial(array<array<double,2>,2> &posDes, 	DaqNI &daqNI,
+						 AtiSensor &atiA,					AtiSensor &atiB,
+						 MaxonMotor &motorA,				MaxonMotor &motorB,
 						 vector<vector<double>>* output_)
 {
 	// initial sample
@@ -209,7 +212,7 @@ void recordMovementTrial(array<array<double,2>,2> &posDes/*array<array<int,2>,4>
 Runs a single test trial on motorA to ensure data logging
 is working.
 */
-void runMovementTrial(array<array<double,2>,2> &posDes/*array<array<int, 2>, 4> &posDes*/,	DaqNI &daqNI, 
+void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI, 
 					  AtiSensor &atiA,					AtiSensor &atiB,
 					  MaxonMotor &motorA,				MaxonMotor &motorB)
 {
@@ -217,15 +220,16 @@ void runMovementTrial(array<array<double,2>,2> &posDes/*array<array<int, 2>, 4> 
 	vector<vector<double>> movementOutput;
 
 	// defining the file name for the export data 
-	string fileName = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
-	string filepath = g_DATA_PATH + "/data/FT" + "/subject" + to_string(g_subject) + fileName;
+	string filename, filepath;
+	filename = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
+	filepath = g_DATA_PATH + "/data/FT/subject" + to_string(g_subject) + filename;
 
 	// // create new camera directory if needed
 	// string camDir = g_DATA_PATH + "/data/CAM" + "/subject" + to_string(g_subject);
 	// create_directory(camDir);
 
 	// // starts camera video acquisition
-	// if (!camera.beginCapture(camDir + "/" + fileName + ".avi")) print("Camera did not begin capture");
+	// if (!camera.beginCapture(camDir + "/" + filename + ".avi")) print("Camera did not begin capture");
 
 	// starting haptic trial
 	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, &movementOutput);
@@ -247,8 +251,11 @@ void runMovementTrial(array<array<double,2>,2> &posDes/*array<array<int, 2>, 4> 
 		};
 
 	// saves and exports trial data
-	csv_write_row(filepath, HEADER_NAMES);
-	csv_append_rows(filepath, movementOutput);
+	if(!g_staircase)
+	{
+		csv_write_row(filepath, HEADER_NAMES);
+		csv_append_rows(filepath, movementOutput);
+	}
 }
 
 
@@ -293,8 +300,8 @@ trialList to the experiment.
 void importTrialList()
 {
 	// attempts to import trialList for subject
-	string fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
-	string filepath = g_DATA_PATH + "/data/trialList" + fileName;
+	string filename = "/sub" + to_string(g_subject) + "_trialList.csv";
+	string filepath = g_DATA_PATH + "/data/trialList" + filename;
 	if (g_trialList.importList(filepath))
 	{
 		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
@@ -315,8 +322,8 @@ trialList to the experiment.
 void importRecordABS(vector<vector<double>>* thresholdOutput)
 {
 	// declares variables for filename and output
-	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
+	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
+	string filepath = g_DATA_PATH + "/data/ABS" + filename;
 
 	// defines relevant variables for data import
 	int 						rows = 0;
@@ -560,8 +567,8 @@ to the participant.
 void runExportUI(vector<vector<double>>* thresholdOutput)
 {
 	// defining the file name for the ABS data file
-	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
+	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
+	string filepath = g_DATA_PATH + "/data/ABS" + filename;
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = 
@@ -585,8 +592,8 @@ void runExportUI(vector<vector<double>>* thresholdOutput)
 
 	// exporting the trialList for this subject
 	// defining the file name for the ABS data file
-	fileName = "/sub" + to_string(g_subject) + "_trialList.csv";
-	filepath = g_DATA_PATH + "/data/trialList" + fileName;
+	filename = "/sub" + to_string(g_subject) + "_trialList.csv";
+	filepath = g_DATA_PATH + "/data/trialList" + filename;
 	g_trialList.exportList(filepath, g_TIMESTAMP);
 }
 
@@ -656,9 +663,7 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 					MaxonMotor &motorA, MaxonMotor &motorB)
 {
 	// declares relevant variables
-	array<int,2> 		crossovers = {0,0}; // number of crossovers and previous step direction
-	const int 			DECREASE(-1); 
-	const int 			INCREASE(1);
+	array<double,2> 	crossovers = {0,0}; // number of crossovers and previous step direction
 	const int 			RANGE_MIN(0);
 	const int			RANGE_MAX(60);
 	array<double,2> 	startVals = staircaseStart(condNum, RANGE_MIN, RANGE_MAX);
@@ -686,34 +691,33 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 
 		if(	Keyboard::is_key_pressed(Key::Add) || Keyboard::is_key_pressed(Key::Up))
 		{
+			// increments or zeroes number of crossovers if neccesary
+			if(crossovers[1] > angle)
+				crossovers[0] += 1;
+			else
+				crossovers[0] = 0;		
+			crossovers[1] = angle;
+
 			// increases angle by step size
 			if((angle+step) <= RANGE_MAX)
 				angle += step;
 			else
 				angle = RANGE_MAX; 
-
-			// increments or zeroes number of crossovers if neccesary
-			if(crossovers[1] == DECREASE)
-				crossovers[0] ++;
-			else
-				crossovers[0] = 0;		
-			crossovers[1] = INCREASE;
-
 		}
 		else if(Keyboard::is_key_pressed(Key::Subtract) || Keyboard::is_key_pressed(Key::Down))
 		{
+			// increments or zeroes number of crossovers if neccesary
+			if(crossovers[1] < angle)
+				crossovers[0] += 1;
+			else
+				crossovers[0] = 0;		
+			crossovers[1] = angle;
+
 			// decreases angle by step size
 			if((angle-step) >= RANGE_MIN)
 				angle -= step;
 			else
 				angle = RANGE_MIN;
-
-			// increments or zeroes number of crossovers if neccesary
-			if(crossovers[1] == INCREASE)
-				crossovers[0] ++;
-			else
-				crossovers[0] = 0;		
-			crossovers[1] = DECREASE;
 		}
 		else if(Keyboard::is_key_pressed(Key::Comma) || Keyboard::is_key_pressed(Key::Left))
 			step /= 2; 
@@ -723,8 +727,48 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 		
 		print("Angle: " + to_string(angle) + " Step: " + to_string(step));
 	}
+
+	if(crossovers[1] < angle)
+		angle = (angle - step/2); 
+	else if(crossovers[1] > angle)
+		angle = (angle + step/2); 
+
 	print("Final angle of threshold is: " + to_string(angle));
+	print("");
 	return angle;
+}
+
+void staircaseRunAll(vector<vector<double>> &thresholdOutput, DaqNI &daqNI,
+					AtiSensor &atiA,	AtiSensor &atiB,
+					MaxonMotor &motorA, MaxonMotor &motorB,
+					int TRIALNUM)
+{
+	// creates a random generator
+	random_device rd;
+
+	// create random range
+	auto rng = default_random_engine{ rd() };
+
+	// declare list of conditions for this experiment
+	const int NUMBER_CONDITIONS = 9;
+	array<int, NUMBER_CONDITIONS> conditions = { 0,1,2,3,4,5,6,7,8 };
+
+	// generate random ordering of conditions
+	shuffle(conditions.begin(), conditions.end(), rng);
+
+	for(int condItr = 0; condItr < NUMBER_CONDITIONS; condItr ++)
+	{
+		vector<double> conditionOutput;
+		conditionOutput.push_back(conditions[condItr]);
+
+		for(int i = 0; i < TRIALNUM; i++)
+		{
+			double angle = staircaseTrial(conditions[condItr], daqNI, atiA, atiB, motorA, motorB);
+			conditionOutput.push_back(angle);
+		}
+		print("Condition completed");
+		thresholdOutput.push_back(conditionOutput);
+	}	
 }
 
 
@@ -752,8 +796,8 @@ int main(int argc, char* argv[])
 	atiB.load_calibration("FT26061.cal");
 
 	// set channels used for the FT sensors
-	atiA.set_channels(daqNI[{0, 1, 2, 3, 4, 5}]);	 
-	atiB.set_channels(daqNI[{16, 17, 18, 19, 20, 21}]);
+	atiA.set_channels(daqNI[{ 0, 1, 2, 3, 4, 5 }]);	 
+	atiB.set_channels(daqNI[{ 16, 17, 18, 19, 20, 21 }]);
 
 	// zero the ATI FT sensors 
 	daqNI.update();
@@ -763,7 +807,6 @@ int main(int argc, char* argv[])
 	// Motor Initialization
 	motorInitialize(motorA, (char*)"USB0");
 	motorInitialize(motorB, (char*)"USB1");
-
 
 	// Defines and parses console options
     Options options("AIMS_Control.exe", "AIMS Testbed Control");
@@ -785,6 +828,15 @@ int main(int argc, char* argv[])
 		print("Beginning staircase method control...");
 		print("");
 
+		// sets to staircase mode
+		g_staircase = true;
+
+		// imports the current subject number
+		importSubjectNumber();
+
+		// defines the number of trials run for each conditon
+		const int TRIALNUM(2);
+
 		while(!g_stop)
 		{
 			print("Please select desired condition to test:");
@@ -797,23 +849,40 @@ int main(int argc, char* argv[])
 			print("6) Stretch with high squeeze interference and minimum distance between cues");
 			print("7) Stretch with high squeeze interference and medium distance between cues");
 			print("8) Stretch with high squeeze interference and maximum distance between cues");
+			print("9) To randomly go through all conditions");
 			print("CTRL+C) To end staircase protocol");
 
 			int inputVal = -1;
 			cin >> inputVal;
 			if(inputVal >= 0 && inputVal < 9)
-				double angle = staircaseTrial(inputVal, daqNI, atiA, atiB, motorA, motorB);
-			else
-				 continue;
+			{
+				vector<double> conditionOutput;
+				conditionOutput.push_back(inputVal);
+
+				for(int i = 0; i < TRIALNUM; i++)
+				{
+					double angle = staircaseTrial(inputVal, daqNI, atiA, atiB, motorA, motorB);
+					conditionOutput.push_back(angle);
+				}
+
+				print("Condition completed");
+				thresholdOutput.push_back(conditionOutput);
+			}
+			else if(inputVal == 9)
+			{
+				staircaseRunAll(thresholdOutput, daqNI, atiA, atiB, motorA, motorB, TRIALNUM);
+			}
 		}
+		string filename = "/sub" + to_string(g_subject) + "_data.csv";
+		string filepath = g_DATA_PATH + "/staircase" + filename;
+		csv_append_rows(filepath, thresholdOutput);
+		print("Staircase output data saved");
 	}
 
 	// runs standard method of constants protocol in all other cases
 	else 
-	{
-		/* 
-		User Interaction Portion of Program
-		*/
+	{		 
+		// User Interaction Portion of Program
 		// import relevant data or creates new data structures
 		runImportUI(&thresholdOutput);
 
