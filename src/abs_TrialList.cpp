@@ -72,15 +72,6 @@ string TrialList::getTrialName(int con, int ang)
 }
 
 /*
-Outputs current condition name
-*/
-string TrialList::getConditionName(int con)
-{
-	int condNameIndex = conditions[con];
-	return conditionNames[condNameIndex];
-}
-
-/*
 Outputs current angle number
 */
 double TrialList::getAngleNumber(int con, int ang)
@@ -148,11 +139,19 @@ string TrialList::getTrialName()
 }
 
 /*
-Calls private function to get current condition name
+Calls self to get current condition name
 */
 string TrialList::getConditionName()
 {
-	return getConditionName(conCurr);
+	return getConditionName(conditions[conCurr]);
+}
+
+/*
+Overleads condition call to give name if condition is specified
+*/
+string TrialList::getConditionName(int condNum)
+{
+	return conditionNames[condNum];
 }
 
 /*
@@ -164,11 +163,19 @@ double TrialList::getAngleNumber()
 }
 
 /*
-Calls private function to get the interference angle
+Gets the interference angle based on current condition
 */
 int TrialList::getInterferenceAngle()
 {
-	int condNum = getCondNum();	
+	int condNum = getCondNum();
+	return getInterferenceAngle(condNum);		
+}
+
+/*
+Overloads interference call to get the interference angle if condition is provided
+*/
+int TrialList::getInterferenceAngle(int condNum)
+{
 	if (condNum >= 3 && condNum < 6) return g_INTERFERENCE_ANGLE_LOW;	
 	else if (condNum >= 6 && condNum < 9) return g_INTERFERENCE_ANGLE_HIGH;
 	else return g_ZERO_ANGLE;		

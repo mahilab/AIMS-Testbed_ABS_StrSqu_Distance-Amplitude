@@ -68,7 +68,6 @@ private:
 
 	// overloaded functions to directly access name information
 	string	 getTrialName(int con, int ang);
-	string	 getConditionName(int con);
 	double	 getAngleNumber(int con, int ang);
 	void	 getTestPositions(array<array<double, 2>,2> &posDes, int con, int ang);
 	int		 getIterationNumber(int con, int ang);
@@ -84,8 +83,10 @@ public:
 	// read various combinations names
 	string  getTrialName();
 	string  getConditionName();
+	string	getConditionName(int condNum);
 	double	getAngleNumber();
 	int		getInterferenceAngle();
+	int		getInterferenceAngle(int condNum);
 	void	getTestPositions(array<array<double, 2>,2> &posDes);
 	int		getIterationNumber();
 	string	getComboNames(); // get full list of combination orderings

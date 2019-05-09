@@ -301,6 +301,7 @@ void importTrialList()
 	}
 	else
 	{
+		// if there was no triallist to import, randomizes a new trialList
 		g_trialList.scramble();
 		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
 	}
@@ -311,7 +312,7 @@ void importTrialList()
 Based on the subject number, attempts to import the relevant
 trialList to the experiment.
 */
-void importRecordABS(vector<vector<double>>* thresholdOutput_)
+void importRecordABS(vector<vector<double>>* thresholdOutput)
 {
 	// declares variables for filename and output
 	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
@@ -356,7 +357,7 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 		for (int i = 0; i < rows; i++)
 		{
 			inputRow = input[i];
-			thresholdOutput_->push_back(inputRow);
+			thresholdOutput->push_back(inputRow);
 		}
 
 		// confirms import with experimenter 
@@ -408,8 +409,8 @@ void importRecordABS(vector<vector<double>>* thresholdOutput_)
 /*
 Record's participant's ABS response to current trial
 */
-//void recordExperimentABS(vector<vector<double>>* thresholdOutput_, bool ref2Test)
-void recordExperimentABS(vector<vector<double>>* thresholdOutput_)
+//void recordExperimentABS(vector<vector<double>>* thresholdOutput, bool ref2Test)
+void recordExperimentABS(vector<vector<double>>* thresholdOutput)
 {
 	// creates an integer for user input
 	int inputVal = 0;
@@ -438,7 +439,7 @@ void recordExperimentABS(vector<vector<double>>* thresholdOutput_)
 		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterferenceAngle(),
 		(double)g_trialList.getAngleNumber(),		(double)inputVal 
 	};
-	thresholdOutput_->push_back(outputRow);
+	thresholdOutput->push_back(outputRow);
 }
 
 /*
@@ -487,11 +488,11 @@ Asks the experimenter for the subject number. Then, if
 relevant, imports trialList and ABS file from previous
 experiment
 */
-void runImportUI(vector<vector<double>>* thresholdOutput_)
+void runImportUI(vector<vector<double>>* thresholdOutput)
 {
 	importSubjectNumber();
 	importTrialList();
-	importRecordABS(thresholdOutput_);
+	importRecordABS(thresholdOutput);
 }
 
 /*
@@ -501,7 +502,7 @@ experimenter enters the exit value, exits the program.
 void runExperimentUI(DaqNI &daqNI,
 					 AtiSensor &atiA,	 AtiSensor &atiB,
 					 MaxonMotor &motorA, MaxonMotor &motorB,
-					 vector<vector<double>>* thresholdOutput_)
+					 vector<vector<double>>* thresholdOutput)
 {
 	// defines positions of the currrent test cue
 	array<array<double, 2>, 2> posDes;
@@ -533,7 +534,7 @@ void runExperimentUI(DaqNI &daqNI,
 		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 		// record ABS trial response
-		recordExperimentABS(thresholdOutput_);
+		recordExperimentABS(thresholdOutput);
 
 		// moves experiment to the next trial within current condition
 		g_trialList.nextAngle();
@@ -549,21 +550,22 @@ void runExperimentUI(DaqNI &daqNI,
 	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
 
 	// record final ABS trial response
-	recordExperimentABS(thresholdOutput_);
+	recordExperimentABS(thresholdOutput);
 }
 
 /*
 Saves the ABS data file as well as the trialList given
 to the participant.
 */
-void runExportUI(vector<vector<double>>* thresholdOutput_)
+void runExportUI(vector<vector<double>>* thresholdOutput)
 {
 	// defining the file name for the ABS data file
 	string fileName = "/sub" + to_string(g_subject) + "_ABS_data.csv";
 	string filepath = g_DATA_PATH + "/data/ABS" + fileName;
 
 	// builds header names for threshold logger
-	const vector<string> HEADER_NAMES = { 
+	const vector<string> HEADER_NAMES = 
+	{ 
 		"Iteration",			"Condition",
 		"AngCurr",				"Interference Angle",
 		"Test Angle",			"Detected (1=Detected 2=Not Detected)"
@@ -571,7 +573,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 
 	// saves the ABS data
 	csv_write_row(filepath, HEADER_NAMES);
-	csv_append_rows(filepath, *thresholdOutput_);
+	csv_append_rows(filepath, *thresholdOutput);
 
 	// information about the current trial the test was exited on
 	print("Test Saved @ ");
@@ -590,7 +592,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput_)
 
 
 /***********************************************************
-********************* MAIN FUNCTION ************************
+********************* MISC FUNCTIONS ***********************
 ************************************************************/
 /*
 Control C handler to cancel the program at any point and save all data to that point
@@ -604,6 +606,132 @@ bool my_handler(CtrlEvent event) {
 	return true;
 }
 
+/***********************************************************
+****************** STAIRCASE FUNCTIONS *********************
+************************************************************/
+/*
+Determines the randomized starting angle for the staircase
+protocol
+*/
+array<double,2> staircaseStart(int condNum, int min, int max)
+{
+	// creates a random generator
+	random_device rd;
+
+	// chooses whether to start above or below the threshold
+	uniform_real_distribution<double> distribution(min, max);
+	double startAngle = distribution(rd);  // generates start angle
+	double startStep = 1;
+
+	return {startAngle, startStep};
+}
+
+/*
+Outputs current angle combination as a double array. 
+Current form outputs the angle for the stretch rocker
+first and the squeeze band second. 
+*/
+array<array<double,2>,2> staircaseTestPos(double angle, int condNum)
+{
+	// define relevant variable containers
+	array<array<double,2>,2> posDes;
+	array<double, 2> testPositions;
+
+	// generates test position array and test position array
+	double interferenceAngle = g_trialList.getInterferenceAngle(condNum);
+	testPositions = { angle, interferenceAngle };
+	
+	// attach zero position for motors to return to after cue
+	posDes[0] = testPositions;
+	posDes[1] = { g_ZERO_ANGLE, g_ZERO_ANGLE };
+	return posDes;
+}
+
+
+/*
+Base control function for the staircase method protocol
+*/
+double staircaseTrial(int condNum,		DaqNI &daqNI,
+					AtiSensor &atiA,	AtiSensor &atiB,
+					MaxonMotor &motorA, MaxonMotor &motorB)
+{
+	// declares relevant variables
+	array<int,2> 		crossovers = {0,0}; // number of crossovers and previous step direction
+	const int 			DECREASE(-1); 
+	const int 			INCREASE(1);
+	const int 			RANGE_MIN(0);
+	const int			RANGE_MAX(60);
+	array<double,2> 	startVals = staircaseStart(condNum, RANGE_MIN, RANGE_MAX);
+	double angle = 		startVals[0];
+	double step = 		startVals[1];
+
+	print(g_trialList.getConditionName(condNum));
+	print("Starting at: " + to_string(angle));
+	vector<Key> inputKeys = 
+	{ 
+		Key::Add, 		Key::Up,
+		Key::Subtract,	Key::Down,
+		Key::Comma,		Key::Left,
+		Key::Period,	Key::Right,
+		Key::LControl,	Key::RControl
+	};
+	
+	// repeats protocol until method has had at least 5 crossovers
+	while(crossovers[0] <= 5)
+	{
+		// runs next movement trial
+		runMovementTrial(staircaseTestPos(angle, condNum), daqNI, atiA, atiB, motorA, motorB);
+		
+		Keyboard::wait_for_any_keys(inputKeys);
+
+		if(	Keyboard::is_key_pressed(Key::Add) || Keyboard::is_key_pressed(Key::Up))
+		{
+			// increases angle by step size
+			if((angle+step) <= RANGE_MAX)
+				angle += step;
+			else
+				angle = RANGE_MAX; 
+
+			// increments or zeroes number of crossovers if neccesary
+			if(crossovers[1] == DECREASE)
+				crossovers[0] ++;
+			else
+				crossovers[0] = 0;		
+			crossovers[1] = INCREASE;
+
+		}
+		else if(Keyboard::is_key_pressed(Key::Subtract) || Keyboard::is_key_pressed(Key::Down))
+		{
+			// decreases angle by step size
+			if((angle-step) >= RANGE_MIN)
+				angle -= step;
+			else
+				angle = RANGE_MIN;
+
+			// increments or zeroes number of crossovers if neccesary
+			if(crossovers[1] == INCREASE)
+				crossovers[0] ++;
+			else
+				crossovers[0] = 0;		
+			crossovers[1] = DECREASE;
+		}
+		else if(Keyboard::is_key_pressed(Key::Comma) || Keyboard::is_key_pressed(Key::Left))
+			step /= 2; 
+		else if(Keyboard::is_key_pressed(Key::Period) || Keyboard::is_key_pressed(Key::Right))
+			step *= 2; 
+		else return NULL;
+		
+		print("Angle: " + to_string(angle) + " Step: " + to_string(step));
+	}
+	print("Final angle of threshold is: " + to_string(angle));
+	return angle;
+}
+
+
+/***********************************************************
+********************* MAIN FUNCTION ************************
+************************************************************/
+
 /*
 Main function of the program references all other functions
 */
@@ -616,7 +744,7 @@ int main(int argc, char* argv[])
 	DaqNI					daqNI;					// creates a new analog input from the NI DAQ
 	AtiSensor				atiA, atiB;				// create the ATI FT Sensors
 	MaxonMotor				motorA, motorB;			// create new motors
-	vector<vector<double>>	thresholdOutput_;		// creates pointer to the output data file for the experiment
+	vector<vector<double>>	thresholdOutput;		// creates pointer to the output data file for the experiment
 	
 	// Sensor Initialization
 	// calibrate the FT sensors 
@@ -657,30 +785,27 @@ int main(int argc, char* argv[])
 		print("Beginning staircase method control...");
 		print("");
 
-		print("Please select desired condition to test:");
-		print("0) Stretch with no interference and minimum distance between cues");
-		print("1) Stretch with no interference and medium distance between cues");
-		print("2) Stretch with no interference and maximum distance between cues");
-		print("3) Stretch with low squeeze interference and minimum distance between cues");
-		print("4) Stretch with low squeeze interference and medium distance between cues");
-		print("5) Stretch with low squeeze interference and maximum distance between cues");
-		print("6) Stretch with high squeeze interference and minimum distance between cues");
-		print("7) Stretch with high squeeze interference and medium distance between cues");
-		print("8) Stretch with high squeeze interference and maximum distance between cues");
-		 
-		int inputVal;
-		cin >> inputVal;
-		switch (inputVal)
-			case 0: 
-			case 1:
-			case 2:
-			case 3:
-			case 4:
-			case 5:
-			case 6:
-			case 7:
-			case 8:
-		print("here");
+		while(!g_stop)
+		{
+			print("Please select desired condition to test:");
+			print("0) Stretch with no interference and minimum distance between cues");
+			print("1) Stretch with no interference and medium distance between cues");
+			print("2) Stretch with no interference and maximum distance between cues");
+			print("3) Stretch with low squeeze interference and minimum distance between cues");
+			print("4) Stretch with low squeeze interference and medium distance between cues");
+			print("5) Stretch with low squeeze interference and maximum distance between cues");
+			print("6) Stretch with high squeeze interference and minimum distance between cues");
+			print("7) Stretch with high squeeze interference and medium distance between cues");
+			print("8) Stretch with high squeeze interference and maximum distance between cues");
+			print("CTRL+C) To end staircase protocol");
+
+			int inputVal = -1;
+			cin >> inputVal;
+			if(inputVal >= 0 && inputVal < 9)
+				double angle = staircaseTrial(inputVal, daqNI, atiA, atiB, motorA, motorB);
+			else
+				 continue;
+		}
 	}
 
 	// runs standard method of constants protocol in all other cases
@@ -690,22 +815,23 @@ int main(int argc, char* argv[])
 		User Interaction Portion of Program
 		*/
 		// import relevant data or creates new data structures
-		runImportUI(&thresholdOutput_);
+		runImportUI(&thresholdOutput);
 
 		// runs ABS experimental protocol automatically
 		while (!g_stop)
 		{
 			// runs a full condition unless interupted
-			runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput_);
+			runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput);
 
 			// advance to the next condition if another condition exists
 			advanceExperimentCondition();		
 		}
 
 		// exports relevant ABS data
-		runExportUI(&thresholdOutput_);
-	}s
+		runExportUI(&thresholdOutput);
+	}
 
+	// informs user that the application is over
 	print("Exiting application...");
 	
 	return EXIT_SUCCESS;
