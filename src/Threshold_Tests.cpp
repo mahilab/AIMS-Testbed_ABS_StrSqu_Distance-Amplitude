@@ -26,6 +26,9 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 // libraries for TrialList Class
 #include "abs_TrialList.hpp"
 
+// libraries for the staircase class
+#include "abs_Staircase.hpp"
+
 // libraries for MEL
 #include <MEL/Core/Console.hpp>
 #include <MEL/Core/Timer.hpp>
@@ -59,6 +62,7 @@ const string g_DATA_PATH("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //fi
 bool		 g_staircase(false);
 
 // subject specific variables
+Staircase	 g_staircase;
 TrialList	 g_trialList;
 int			 g_subject = 0;
 
@@ -224,18 +228,8 @@ void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI,
 	filename = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
 	filepath = g_DATA_PATH + "/data/FT/subject" + to_string(g_subject) + filename;
 
-	// // create new camera directory if needed
-	// string camDir = g_DATA_PATH + "/data/CAM" + "/subject" + to_string(g_subject);
-	// create_directory(camDir);
-
-	// // starts camera video acquisition
-	// if (!camera.beginCapture(camDir + "/" + filename + ".avi")) print("Camera did not begin capture");
-
 	// starting haptic trial
 	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, &movementOutput);
-	
-	// // stops camera video acquisition
-	// if (!camera.endCapture()) print("Camera did not end capture");
 
 	// Defines header names of the csv
 	const vector<string> HEADER_NAMES = { "Samples",
@@ -628,7 +622,7 @@ array<double,2> staircaseStart(int condNum, int min, int max)
 	// chooses whether to start above or below the threshold
 	uniform_real_distribution<double> distribution(min, max);
 	double startAngle = distribution(rd);  // generates start angle
-	double startStep = 1;
+	const double startStep = 1;
 
 	return {startAngle, startStep};
 }
@@ -638,10 +632,10 @@ Outputs current angle combination as a double array.
 Current form outputs the angle for the stretch rocker
 first and the squeeze band second. 
 */
-array<array<double,2>,2> staircaseTestPos(double angle, int condNum)
+array<array<double, 2>, 2> staircaseTestPos(double angle, int condNum)
 {
 	// define relevant variable containers
-	array<array<double,2>,2> posDes;
+	array<array<double, 2>, 2> posDes;
 	array<double, 2> testPositions;
 
 	// generates test position array and test position array

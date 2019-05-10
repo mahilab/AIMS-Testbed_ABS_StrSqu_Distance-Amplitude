@@ -6,7 +6,6 @@ Edited by: Zane Zook (gadzooks@rice.edu), Andrew Low (andrew.low@rice.edu)
 
 Defines a class to randomize a list of trial conditions for
 Absolute Threshold experiment.
-Last Changed: 12/21/18
 */
 
 /***********************************************************

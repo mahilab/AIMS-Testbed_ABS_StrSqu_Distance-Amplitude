@@ -30,9 +30,11 @@ link_directories(
 add_executable(Threshold_Tests
     include/MaxonMotor.hpp
     include/abs_TrialList.hpp
+    include/abs_Staircase.hpp
     include/DaqNI.hpp
     src/MaxonMotor.cpp
     src/abs_TrialList.cpp
+    src/abs_Staircase.cpp
     src/DaqNI.cpp
     src/Threshold_Tests.cpp
 )

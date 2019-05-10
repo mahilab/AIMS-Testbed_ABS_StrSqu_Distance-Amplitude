@@ -8,8 +8,8 @@ Defines a class to randomize a list of trial conditions for
 Absolute Threshold experiment.
 */
 
-#ifndef TRIALLIST_H
-#define TRIALLIST_H
+#ifndef ABS_TRIALLIST
+#define ABS_TRIALLIST
 
 /***********************************************************
 ******************** LIBRARY IMPORT ************************
