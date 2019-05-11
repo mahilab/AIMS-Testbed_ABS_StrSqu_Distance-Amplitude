@@ -1,5 +1,5 @@
 /*
-File: DaqNI.cpp
+File: daq_ni.cpp
 ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
 
@@ -24,20 +24,17 @@ sensors. Uses MEL's development ATIsensor class.
 // C libraries
 #include "NIDAQmx.h"
 
-// choosing mel namespace
-using namespace mel;
-
 /***********************************************************
 ****************** CLASS DECLARATION ***********************
 ************************************************************/
-class DaqNI : public AnalogInput, NonCopyable
+class DaqNI : public mel::AnalogInput, mel::NonCopyable
 {
 private:
 	// member variables
-	TaskHandle  taskHandle;	// creates a new taskHandle
-	signed long error;
-	signed long read;
-	char        errBuff[2048] = { '\0' };
+	TaskHandle  task_handle_;	// creates a new task_handle_
+	signed long error_;
+	signed long read_;
+	char        error_buffer_[2048] = { '\0' };
 
 public:
 	// constructor
@@ -46,6 +43,6 @@ public:
 
 	// DAQ update functions
 	bool update();
-	bool update_channel(uint32 channel_number);
+	bool update_channel(mel::uint32 channel_number);
 };
 #endif DAQNI

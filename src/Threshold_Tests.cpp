@@ -17,7 +17,7 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 ******************** LIBRARY IMPORT ************************
 ************************************************************/
 // libraries for DaqNI Class
-#include "DaqNI.hpp"
+#include "daq_ni.hpp"
 
 // libraries for Maxon Motor Class
 #include "Definitions.h"
