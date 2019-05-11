@@ -27,20 +27,20 @@ link_directories(
 # add_definitions(-DMEL_STATIC)
 
 # create application
-add_executable(Threshold_Tests
-    include/MaxonMotor.hpp
-    include/abs_TrialList.hpp
-    include/abs_Staircase.hpp
+add_executable(threshold_tests
+    include/maxonmotor.hpp
+    include/absolute_triallist.hpp
+    include/absolute_staircase.hpp
     include/DaqNI.hpp
-    src/MaxonMotor.cpp
-    src/abs_TrialList.cpp
-    src/abs_Staircase.cpp
+    src/maxonMotor.cpp
+    src/absolute_triallist.cpp
+    src/absolute_staircase.cpp
     src/DaqNI.cpp
-    src/Threshold_Tests.cpp
+    src/threshold_tests.cpp
 )
 
 # link MEL
-target_link_libraries(Threshold_Tests
+target_link_libraries(threshold_tests
     MEL::MEL
     NIDAQmx.lib
     EposCmd64.lib

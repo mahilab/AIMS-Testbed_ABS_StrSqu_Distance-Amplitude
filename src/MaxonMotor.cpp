@@ -15,7 +15,7 @@ other controllers
 ******************** LIBRARY IMPORT ************************
 ************************************************************/
 // libraries for Maxon Motor Class
-#include "MaxonMotor.hpp"
+#include "maxonmotor.hpp"
 
 // other misc standard libraries
 #include <iostream>

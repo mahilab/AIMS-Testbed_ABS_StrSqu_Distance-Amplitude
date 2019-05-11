@@ -21,13 +21,13 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 
 // libraries for Maxon Motor Class
 #include "Definitions.h"
-#include "MaxonMotor.hpp"
+#include "maxonmotor.hpp"
 
 // libraries for TrialList Class
-#include "abs_TrialList.hpp"
+#include "absolute_trialList.hpp"
 
 // libraries for the staircase class
-#include "abs_Staircase.hpp"
+#include "absolute_staircase.hpp"
 
 // libraries for MEL
 #include <MEL/Core/Console.hpp>
@@ -53,10 +53,10 @@ using namespace std;
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 // constant variables 
-int			 g_TIME_BW_CUES(1000);// sets the number of milliseconds to wait in between cues
-const int	 g_CONFIRM_VALUE(123);
-const bool	 g_TIMESTAMP(false);
-const string g_DATA_PATH("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to main project files
+const int	 kTimeBetweenCues(1000);// sets the number of milliseconds to wait in between cues
+const int	 kConfirmValue(123);
+const bool	 kTimestamp(false);
+const string kDataPath("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to main project files
 
 // variable to track protocol being run						
 bool		 g_staircase(false);
@@ -144,7 +144,7 @@ void motorPosGet(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes
 		/*
 		if (i == 1)
 		{
-			sleep(milliseconds(g_TIME_BW_CUES));
+			sleep(milliseconds(kTimeBetweenCues));
 		}
 		*/
 	}
@@ -226,7 +226,7 @@ void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI,
 	// defining the file name for the export data 
 	string filename, filepath;
 	filename = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
-	filepath = g_DATA_PATH + "/data/FT/subject" + to_string(g_subject) + filename;
+	filepath = kDataPath + "/data/FT/subject" + to_string(g_subject) + filename;
 
 	// starting haptic trial
 	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, &movementOutput);
@@ -273,7 +273,7 @@ void importSubjectNumber()
 	std::cin		>> inputVal;
 
 	// loops until a proper response is given
-	while (inputVal != g_CONFIRM_VALUE)
+	while (inputVal != kConfirmValue)
 	{
 		mel::print("Subject number was not confirmed. You typed: " + to_string(inputVal));
 		mel::print("Please indicate the subject number: ");
@@ -295,7 +295,7 @@ void importTrialList()
 {
 	// attempts to import trialList for subject
 	string filename = "/sub" + to_string(g_subject) + "_trialList.csv";
-	string filepath = g_DATA_PATH + "/data/trialList" + filename;
+	string filepath = kDataPath + "/data/trialList" + filename;
 	if (g_trialList.importList(filepath))
 	{
 		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
@@ -317,7 +317,7 @@ void importRecordABS(vector<vector<double>>* thresholdOutput)
 {
 	// declares variables for filename and output
 	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = g_DATA_PATH + "/data/ABS" + filename;
+	string filepath = kDataPath + "/data/ABS" + filename;
 
 	// defines relevant variables for data import
 	int 						rows = 0;
@@ -375,7 +375,7 @@ void importRecordABS(vector<vector<double>>* thresholdOutput)
 		cin		>> inputVal;
 
 		// loops until import is confirmed 
-		while (inputVal != g_CONFIRM_VALUE)
+		while (inputVal != kConfirmValue)
 		{
 			print("Import Rejected. Please input desired iteration index number:");
 			cin		>> inputVal;
@@ -467,7 +467,7 @@ void advanceExperimentCondition()
 	cin >> inputVal;
 
 	// loops until a proper response is given
-	while(!g_stop && inputVal != g_CONFIRM_VALUE)
+	while(!g_stop && inputVal != kConfirmValue)
 	{ 
 		print("Please register a save to exit or input CONFIRM_VALUE to continue to next condition...");
 		cin >> inputVal;
@@ -513,7 +513,7 @@ void runExperimentUI(DaqNI &daqNI,
 	print("Current Condition: " + g_trialList.getConditionName());
 
 	// waits for confirmation before continuing
-	while(inputVal != g_CONFIRM_VALUE)
+	while(inputVal != kConfirmValue)
 	{	
 		print("Insert CONFIRM_VALUE when you are ready to begin condition");
 		cin >> inputVal;
@@ -562,7 +562,7 @@ void runExportUI(vector<vector<double>>* thresholdOutput)
 {
 	// defining the file name for the ABS data file
 	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = g_DATA_PATH + "/data/ABS" + filename;
+	string filepath = kDataPath + "/data/ABS" + filename;
 
 	// builds header names for threshold logger
 	const vector<string> HEADER_NAMES = 
@@ -587,8 +587,8 @@ void runExportUI(vector<vector<double>>* thresholdOutput)
 	// exporting the trialList for this subject
 	// defining the file name for the ABS data file
 	filename = "/sub" + to_string(g_subject) + "_trialList.csv";
-	filepath = g_DATA_PATH + "/data/trialList" + filename;
-	g_trialList.exportList(filepath, g_TIMESTAMP);
+	filepath = kDataPath + "/data/trialList" + filename;
+	g_trialList.exportList(filepath, kTimestamp);
 }
 
 
@@ -868,7 +868,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		string filename = "/sub" + to_string(g_subject) + "_data.csv";
-		string filepath = g_DATA_PATH + "/staircase" + filename;
+		string filepath = kDataPath + "/staircase" + filename;
 		csv_append_rows(filepath, thresholdOutput);
 		print("Staircase output data saved");
 	}
