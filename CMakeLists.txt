@@ -31,11 +31,11 @@ add_executable(threshold_tests
     include/maxon_motor.hpp
     include/absolute_triallist.hpp
     include/absolute_staircase.hpp
-    include/daq_ni.hpp
+    include/DaqNI.hpp
     src/maxon_motor.cpp
     src/absolute_triallist.cpp
     src/absolute_staircase.cpp
-    src/daq_ni.cpp
+    src/DaqNI.cpp
     src/threshold_tests.cpp
 )
 
