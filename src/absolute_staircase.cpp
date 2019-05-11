@@ -114,9 +114,9 @@ Overloads interference call to get the interference angle_ if condition is provi
 */
 double Staircase::GetInterferenceAngle(int condition_num)
 {
-	if (condition_num >= 3 && condition_num < 6) return kInterferenceAngleLow_;	
-	else if (condition_num >= 6 && condition_num < 9) return kInterferenceAngleHigh_;
-	else return kZeroAngle_;		
+	if (condition_num >= 3 && condition_num < 6) return kInterferenceLow_;	
+	else if (condition_num >= 6 && condition_num < 9) return kInterferenceHigh_;
+	else return kZero_;		
 }
 
 /*
@@ -134,7 +134,7 @@ void Staircase::GetTestPositions(std::array<std::array<double,2>,2> &position_de
 	
 	// attach zero position for motors to return to after cue
 	position_desired[0] = test_positions;
-	position_desired[1] = { kZeroAngle_, kZeroAngle_ };
+	position_desired[1] = { kZero_, kZero_ };
 }
 
 /***********************************************************

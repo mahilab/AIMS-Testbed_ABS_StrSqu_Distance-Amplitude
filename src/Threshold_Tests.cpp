@@ -4,7 +4,7 @@ ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
 Edited By: Andrew Low (andrew.low@rice.edu)
 
-This file is the main file of the HapEE-Control project
+This file is the Main file of the HapEE-Control project
 which send messages using the MAXON motor controller
 EPOS library to the EPOS controllers and measures
 forces/torques from the NI DAQ simultaneously. Hardware
@@ -17,14 +17,14 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 ******************** LIBRARY IMPORT ************************
 ************************************************************/
 // libraries for DaqNI Class
-#include "DaqNI.hpp"
+#include "daq_ni.hpp"
 
 // libraries for Maxon Motor Class
 #include "Definitions.h"
-#include "maxonmotor.hpp"
+#include "maxon_motor.hpp"
 
 // libraries for TrialList Class
-#include "absolute_trialList.hpp"
+#include "absolute_triallist.hpp"
 
 // libraries for the staircase class
 #include "absolute_staircase.hpp"
@@ -46,32 +46,31 @@ Force/Torque Sensors, and 1 NI DAQ for the force sensors.
 
 // namespace for MEL
 using namespace mel;
-using namespace std;
 
 
 /***********************************************************
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 // constant variables 
-const int	 kTimeBetweenCues(1000);// sets the number of milliseconds to wait in between cues
-const int	 kConfirmValue(123);
-const bool	 kTimestamp(false);
-const string kDataPath("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to main project files
+const int	 		kTimeBetweenCues(1000);// sets the number of milliseconds to wait in between cues
+const int	 		kConfirmValue(123);
+const bool	 		kTimestamp(false);
+const std::string	kDataPath("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to Main project files
 
 // variable to track protocol being run						
-bool		 g_staircase(false);
+bool		 staircase_flag(false);
 
 // subject specific variables
-Staircase	 g_staircase;
-TrialList	 g_trialList;
-int			 g_subject = 0;
+Staircase	 staircase;
+TrialList	 trial_list;
+int			 subject = 0;
 
 // actual motor positions variable
-double		 g_motorPos[2];
-double		 g_motorDesPos[2];
-bool	     g_motorFlag(false);
-ctrl_bool	 g_stop(false);
-Mutex		 g_mutex; // mutex for the separate motor position reading thread
+double		 motor_position[2];
+double		 motor_desired_position[2];
+bool	     motor_flag(false);
+ctrl_bool	 stop(false);
+Mutex		 mutex; // mutex for the separate motor position reading thread
 
 
 /***********************************************************
@@ -80,21 +79,21 @@ Mutex		 g_mutex; // mutex for the separate motor position reading thread
 /*
 Sends relevant parameters to set up the Maxon motor
 */
-void motorInitialize(MaxonMotor &motor, char* portName)
+void MotorInitialize(MaxonMotor &motor, char* port_name)
 {
 	// define relevant parameters for the controller
-	const unsigned int DESIRED_VELOCITY =		10000;
-	const unsigned int DESIRED_ACCELERATION =	100000;
-	const unsigned int DESIRED_DECELERATION =	100000;
+	const unsigned int kDesiredVelocity =		10000;
+	const unsigned int kDesiredAcceleration =	100000;
+	const unsigned int kDesiredDeceleration =	100000;
 
 	// set important parameters of the motor
-	motor.setPort(portName);
+	motor.SetPort(port_name);
 
 	// activate motor controller
-	motor.start();
+	motor.Start();
 
 	// set motor control parameters
-	motor.setControlParam(DESIRED_VELOCITY, DESIRED_ACCELERATION, DESIRED_DECELERATION);
+	motor.SetControlParam(kDesiredVelocity, kDesiredAcceleration, kDesiredDeceleration);
 }
 
 
@@ -106,36 +105,36 @@ Function to move the motor and measure its position. Position
 measurement occurs at 100Hz in a separate thread to the 
 1000Hz force sensor recorder
 */
-void motorPosGet(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes*/, MaxonMotor &motorA, MaxonMotor &motorB) 
+void MotorPositionGet(std::array<std::array<double,2>,2> &position_desired, MaxonMotor &motor_a, MaxonMotor &motor_b) 
 {
-	// loops through each of the positions in the array for the trial
-	for (int i = 0; i < posDes.size(); i++)
+	// loops through each of the positions in the std::array for the trial
+	for (int i = 0; i < position_desired.size(); i++)
 	{
 		// update desired positions
 		{
-			Lock lock(g_mutex);
-			g_motorDesPos[0] = posDes[i][0];
-			g_motorDesPos[1] = posDes[i][1];
+			Lock lock(mutex);
+			motor_desired_position[0] = position_desired[i][0];
+			motor_desired_position[1] = position_desired[i][1];
 		}
 
 		// move motors to desired positions
-		motorA.move((double) g_motorDesPos[0]);
-		motorB.move((double) g_motorDesPos[1]);
+		motor_a.Move((double) motor_desired_position[0]);
+		motor_b.Move((double) motor_desired_position[1]);
 
 		// create 100Hz timer
 		Timer timer(hertz(100));
 
 		// measures the motor positions during any motor movement
-		while (!motorA.targetReached() || !motorB.targetReached()) {
+		while (!motor_a.TargetReached() || !motor_b.TargetReached()) {
 
 			// creates and defines the actual positions of the motors
-			long posA, posB;
-			motorA.getPosition(posA);
-			motorB.getPosition(posB);
+			long position_a, position_b;
+			motor_a.GetPosition(position_a);
+			motor_b.GetPosition(position_b);
 			{
-				Lock lock(g_mutex);
-				g_motorPos[0] = (double)posA;
-				g_motorPos[1] = (double)posB;
+				Lock lock(mutex);
+				motor_position[0] = (double)position_a;
+				motor_position[1] = (double)position_b;
 			}
 			timer.wait();
 		}
@@ -149,58 +148,58 @@ void motorPosGet(array<array<double,2>,2> &posDes/*array<array<int,2>,4> &posDes
 		*/
 	}
 	// tells the force sensor loop to exit once trial is complete
-	g_motorFlag = true;
+	motor_flag = true;
 }
 
 /*
 Measures force/torque data, motor position data and time information
 during the motor movement
 */
-void recordMovementTrial(array<array<double,2>,2> &posDes, 	DaqNI &daqNI,
-						 AtiSensor &atiA,					AtiSensor &atiB,
-						 MaxonMotor &motorA,				MaxonMotor &motorB,
-						 vector<vector<double>>* output_)
+void RecordMovementTrial(std::array<std::array<double,2>,2> &position_desired, 	DaqNI &daq_ni,
+						 AtiSensor &ati_a,					AtiSensor &ati_b,
+						 MaxonMotor &motor_a,				MaxonMotor &motor_b,
+						 std::vector<std::vector<double>>* output_)
 {
 	// initial sample
 	int sample = 0;
 
 	// starts motor position read thread
-	std::thread motorPosThread(motorPosGet, std::ref(posDes), std::ref(motorA), std::ref(motorB));
+	std::thread motor_position_thread(MotorPositionGet, std::ref(position_desired), std::ref(motor_a), std::ref(motor_b));
 
 	// create 1000Hz timer
 	Timer timer(hertz(1000)); 
 
 	// movement data record loop
-	while (!g_motorFlag)
+	while (!motor_flag)
 	{
 		// DAQmx Read Code
-		daqNI.update();
+		daq_ni.update();
 
 		// measuring force/torque sensors
-		vector<double> forceA =	 atiA.get_forces();
-		vector<double> forceB =  atiB.get_forces();
-		vector<double> torqueA = atiA.get_torques();
-		vector<double> torqueB = atiB.get_torques();
-		vector<double> outputRow;
+		std::vector<double> forceA =	ati_a.get_forces();
+		std::vector<double> forceB =  	ati_b.get_forces();
+		std::vector<double> torqueA = 	ati_a.get_torques();
+		std::vector<double> torqueB = 	ati_b.get_torques();
+		std::vector<double> output_row;	
 
-		// locks pulls data into the outputRow format and unlocks
+		// locks pulls data into the output_row format and unlocks
 		{
-			Lock lock(g_mutex);
+			Lock lock(mutex);
 
-			outputRow = { (double)sample,
+			output_row = { (double)sample,
 				// Motor/Sensor A
-				g_motorDesPos[0],	g_motorPos[0], 
+				motor_desired_position[0],	motor_position[0], 
 				forceA[0],			forceA[1],			forceA[2], 
 				torqueA[0],			torqueA[1],			torqueA[2],
 
 				// Motor/Sensor B
-				g_motorDesPos[1],	g_motorPos[1],
+				motor_desired_position[1],	motor_position[1],
 				forceB[0],			forceB[1],			forceB[2],
 				torqueB[0],			torqueB[1],			torqueB[2]
 			};
 		}
 		// input the the sampled data into output buffer
-		output_->push_back(outputRow);
+		output_->push_back(output_row);
 
 		// increment sample number
 		sample++;
@@ -208,31 +207,33 @@ void recordMovementTrial(array<array<double,2>,2> &posDes, 	DaqNI &daqNI,
 	}
 
 	// joins threads together and resets flag before continuing
-	motorPosThread.join();
-	g_motorFlag = false;
+	motor_position_thread.join();
+	motor_flag = false;
 }
 
 /*
-Runs a single test trial on motorA to ensure data logging
+Runs a single test trial on motor_a to ensure data logging
 is working.
 */
-void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI, 
-					  AtiSensor &atiA,					AtiSensor &atiB,
-					  MaxonMotor &motorA,				MaxonMotor &motorB)
+void RunMovementTrial(std::array<std::array<double,2>,2> &position_desired,	DaqNI &daq_ni, 
+					  AtiSensor &ati_a,					AtiSensor &ati_b,
+					  MaxonMotor &motor_a,				MaxonMotor &motor_b)
 {
 	// create new output buffer
-	vector<vector<double>> movementOutput;
+	std::vector<std::vector<double>> movementOutput;
 
 	// defining the file name for the export data 
-	string filename, filepath;
-	filename = "/sub" + to_string(g_subject) + "_" + to_string(g_trialList.getIterationNumber()) + "_" + g_trialList.getTrialName() + "_data.csv";
-	filepath = kDataPath + "/data/FT/subject" + to_string(g_subject) + filename;
+	std::string filename, filepath;
+	filename = "/sub" + std::to_string(subject) + "_" + std::to_string(trial_list.GetIterationNumber()) + "_" + trial_list.GetTrialName() + "_data.csv";
+	filepath = kDataPath + "/data/FT/subject" + std::to_string(subject) + filename;
 
 	// starting haptic trial
-	recordMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB, &movementOutput);
+	RecordMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b, &movementOutput);
 
 	// Defines header names of the csv
-	const vector<string> HEADER_NAMES = { "Samples",
+	const std::vector<std::string> header_names = 
+		{ 
+		"Samples",
 		// Motor/Sensor A
 		"Position A Desired", "Position A Actual",
 		"FxA", "FyA", "FzA",
@@ -245,9 +246,9 @@ void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI,
 		};
 
 	// saves and exports trial data
-	if(!g_staircase)
+	if(!staircase_flag)
 	{
-		csv_write_row(filepath, HEADER_NAMES);
+		csv_write_row(filepath, header_names);
 		csv_append_rows(filepath, movementOutput);
 	}
 }
@@ -259,31 +260,31 @@ void runMovementTrial(array<array<double,2>,2> &posDes,	DaqNI &daqNI,
 /*
 Asks the experimenter for the subject number and stores it
 */
-void importSubjectNumber()
+void ImportSubjectNumber()
 {
 	// variable for input
-	int inputVal = 0;
+	int input_value = 0;
 
 	// asks experimenter to input subject number for the experiment
 	mel::print("Please indicate the subject number: ");
-	std::cin		>> g_subject;
+	std::cin	>> subject;
 
-	mel::print("You typed " + to_string(g_subject) + ", is this correct?");
+	mel::print("You typed " + std::to_string(subject) + ", is this correct?");
 	mel::print("Please type CONFIRM_VALUE to confirm subject number");
-	std::cin		>> inputVal;
+	std::cin	>> input_value;
 
 	// loops until a proper response is given
-	while (inputVal != kConfirmValue)
+	while (input_value != kConfirmValue)
 	{
-		mel::print("Subject number was not confirmed. You typed: " + to_string(inputVal));
+		mel::print("Subject number was not confirmed. You typed: " + std::to_string(input_value));
 		mel::print("Please indicate the subject number: ");
 
-		std::cin		>> g_subject;
-		mel::print("You typed " + to_string(g_subject) + ", is this correct?");
+		std::cin >> subject;
+		mel::print("You typed " + std::to_string(subject) + ", is this correct?");
 		mel::print("Please type CONFIRM_VALUE to confirm subject number");
-		std::cin >> inputVal;
+		std::cin >> input_value;
 	}
-	mel::print("Subject number " + to_string(g_subject) + " confirmed");
+	mel::print("Subject number " + std::to_string(subject) + " confirmed");
 	mel::print("");
 }
 
@@ -291,20 +292,20 @@ void importSubjectNumber()
 Based on the subject number, attempts to import the relevant
 trialList to the experiment.
 */
-void importTrialList()
+void ImportTrialList()
 {
 	// attempts to import trialList for subject
-	string filename = "/sub" + to_string(g_subject) + "_trialList.csv";
-	string filepath = kDataPath + "/data/trialList" + filename;
-	if (g_trialList.importList(filepath))
+	std::string filename = "/sub" + std::to_string(subject) + "_trialList.csv";
+	std::string filepath = kDataPath + "/data/trialList" + filename;
+	if (trial_list.ImportList(filepath))
 	{
-		print("Subject " + to_string(g_subject) + "'s trialList has been successfully imported");
+		print("Subject " + std::to_string(subject) + "'s trialList has been successfully imported");
 	}
 	else
 	{
-		// if there was no triallist to import, randomizes a new trialList
-		g_trialList.scramble();
-		print("Subject " + to_string(g_subject) + "'s trialList has been made and randomized successfully");
+		// if there was no trial_list to import, randomizes a new trialList
+		trial_list.scramble();
+		print("Subject " + std::to_string(subject) + "'s trialList has been made and randomized successfully");
 	}
 	print("");
 }
@@ -313,90 +314,90 @@ void importTrialList()
 Based on the subject number, attempts to import the relevant
 trialList to the experiment.
 */
-void importRecordABS(vector<vector<double>>* thresholdOutput)
+void ImportRecordABS(std::vector<std::vector<double>>* threshold_output)
 {
 	// declares variables for filename and output
-	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = kDataPath + "/data/ABS" + filename;
+	std::string filename = "/sub" + std::to_string(subject) + "_ABS_data.csv";
+	std::string filepath = kDataPath + "/data/ABS" + filename;
 
 	// defines relevant variables for data import
-	int 						rows = 0;
-	int 						cols = 0;
-	const int					ROW_OFFSET(1);
-	const int					ITERATION_NUM_INDEX(0);
-	const int					ANGLE_NUM_INDEX(2);
+	int 		rows = 0;
+	int 		cols = 0;
+	const int	kRowOffset(1);
+	const int	kIterationNumIndex(0);
+	const int	kAngleNumIndex(2);
 
 	// determine size of the input 
-	ifstream file(filepath);
+	std::ifstream file(filepath);
 	if (file.is_open())
 	{
-		string line_string;	
+		std::string line_string;	
 		while (getline(file, line_string)) 
 		{
 			rows ++;
-			if (rows == ROW_OFFSET)
+			if (rows == kRowOffset)
 			{
-				istringstream line_stream(line_string);
-				string value_string;
+				std::istringstream line_stream(line_string);
+				std::string value_string;
 				while(getline(line_stream, value_string, ','))
 					cols ++;
 			}
 		}
-		rows -= ROW_OFFSET;
+		rows -= kRowOffset;
 	}
 
 	// prints the size of the input file
-	// print("Rows: " + to_string(rows) + " | Cols: " + to_string(cols));
+	// print("Rows: " + std::to_string(rows) + " | Cols: " + std::to_string(cols));
 
 	// defines variables to hold data input	
-	vector<vector<double>>		input(rows, vector<double>(cols));
-	vector<double> 				inputRow(cols);
+	std::vector<std::vector<double>>	input(rows, std::vector<double>(cols));
+	std::vector<double> 				input_row(cols);
 
 	// loads ABS threshold record into experiment
-	if(csv_read_rows(filepath, input, ROW_OFFSET, 0))
+	if(csv_read_rows(filepath, input, kRowOffset, 0))
 	{
 		for (int i = 0; i < rows; i++)
 		{
-			inputRow = input[i];
-			thresholdOutput->push_back(inputRow);
+			input_row = input[i];
+			threshold_output->push_back(input_row);
 		}
 
 		// confirms import with experimenter 
-		g_trialList.setCombo((int)inputRow[ITERATION_NUM_INDEX] + 1, (int)inputRow[ANGLE_NUM_INDEX] + 1);
-		print("Subject " + to_string(g_subject) + "'s ABS record has been successfully imported");
+		trial_list.SetCombo((int)input_row[kIterationNumIndex] + 1, (int)input_row[kAngleNumIndex] + 1);
+		print("Subject " + std::to_string(subject) + "'s ABS record has been successfully imported");
 		print("Current trial detected @");
-		print("Iteration: " + to_string(g_trialList.getIterationNumber()));
-		print("Condition: " + to_string(g_trialList.getCondNum()) + " - " + g_trialList.getConditionName());
-		print("Angle: " + to_string(g_trialList.getAngCurr()) + " - " + to_string(g_trialList.getAngleNumber()));
+		print("Iteration: " + std::to_string(trial_list.GetIterationNumber()));
+		print("Condition: " + std::to_string(trial_list.GetConditionNum()) + " - " + trial_list.GetConditionName());
+		print("Angle: " + std::to_string(trial_list.GetAngleIndex()) + " - " + std::to_string(trial_list.GetAngleNumber()));
 		
 		// waits for confirmation of import
 		print("Is this correct? Please type CONFIRM_VALUE to confirm...");
-		int		inputVal = 0;
-		cin		>> inputVal;
+		int			input_value = 0;
+		std::cin >> input_value;
 
 		// loops until import is confirmed 
-		while (inputVal != kConfirmValue)
+		while (input_value != kConfirmValue)
 		{
 			print("Import Rejected. Please input desired iteration index number:");
-			cin		>> inputVal;
-			g_trialList.setCombo(inputVal, g_trialList.getAngCurr());
+			std::cin		>> input_value;
+			trial_list.SetCombo(input_value, trial_list.GetAngleIndex());
 
 			print("Please input desired angle index number:");
-			cin		>> inputVal;
-			g_trialList.setCombo(g_trialList.getIterationNumber(), inputVal);
+			std::cin		>> input_value;
+			trial_list.SetCombo(trial_list.GetIterationNumber(), input_value);
 
 			print("Current trial detected @");
-			print("Iteration: " + to_string(g_trialList.getIterationNumber()));
-			print("Condition: " + to_string(g_trialList.getCondNum()) + " - " + g_trialList.getConditionName());
-			print("Angle: " + to_string(g_trialList.getAngCurr()) + " - " + to_string(g_trialList.getAngleNumber()));
+			print("Iteration: " + std::to_string(trial_list.GetIterationNumber()));
+			print("Condition: " + std::to_string(trial_list.GetConditionNum()) + " - " + trial_list.GetConditionName());
+			print("Angle: " + std::to_string(trial_list.GetAngleIndex()) + " - " + std::to_string(trial_list.GetAngleNumber()));
 			print("Is this correct? Please type CONFIRM_VALUE to confirm.");
-			cin		>> inputVal;
+			std::cin		>> input_value;
 		}
 		print("Import Accepted.");
 	}
 	else
 	{
-		print("Subject " + to_string(g_subject) + "'s ABS record has been built successfully");
+		print("Subject " + std::to_string(subject) + "'s ABS record has been built successfully");
 	}
 
 	// makes space for next print statements
@@ -410,74 +411,74 @@ void importRecordABS(vector<vector<double>>* thresholdOutput)
 /*
 Record's participant's ABS response to current trial
 */
-//void recordExperimentABS(vector<vector<double>>* thresholdOutput, bool ref2Test)
-void recordExperimentABS(vector<vector<double>>* thresholdOutput)
+//void RecordExperimentABS(std::vector<std::vector<double>>* threshold_output, bool ref2Test)
+void RecordExperimentABS(std::vector<std::vector<double>>* threshold_output)
 {
 	// creates an integer for user input
-	int inputVal = 0;
+	int input_value = 0;
 
 	// asks user for input regarding their comparison
-	print("Iteration: " + to_string(g_trialList.getIterationNumber()));
+	print("Iteration: " + std::to_string(trial_list.GetIterationNumber()));
 	print("Could you detect the cue? 1 for yes, 2 for no.....");
 	
-	vector<Key> inputKeys = { Key::Num1, Key::Numpad1, Key::Num2, Key::Numpad2 };
-	Keyboard::wait_for_any_keys(inputKeys);
+	std::vector<Key> input_keys = { Key::Num1, Key::Numpad1, Key::Num2, Key::Numpad2 };
+	Keyboard::wait_for_any_keys(input_keys);
 	
 	if (Keyboard::is_key_pressed(Key::Num1) || Keyboard::is_key_pressed(Key::Numpad1))
 	{
-		inputVal = 1;
-		print("You typed " + to_string(inputVal));
+		input_value = 1;
+		print("You typed " + std::to_string(input_value));
 	}
 	else if (Keyboard::is_key_pressed(Key::Num2) || Keyboard::is_key_pressed(Key::Numpad2))
 	{
-		inputVal = 2;
-		print("You typed " + to_string(inputVal));
+		input_value = 2;
+		print("You typed " + std::to_string(input_value));
 	}
 
 	// add current row for ABS testing to the buffer
-	vector<double> outputRow = { 
-		(double)g_trialList.getIterationNumber(),	(double)g_trialList.getCondNum(),
-		(double)g_trialList.getAngCurr(),			(double)g_trialList.getInterferenceAngle(),
-		(double)g_trialList.getAngleNumber(),		(double)inputVal 
+	std::vector<double> output_row = { 
+		(double)trial_list.GetIterationNumber(),	(double)trial_list.GetConditionNum(),
+		(double)trial_list.GetAngleIndex(),			(double)trial_list.GetInterferenceAngle(),
+		(double)trial_list.GetAngleNumber(),		(double)input_value 
 	};
-	thresholdOutput->push_back(outputRow);
+	threshold_output->push_back(output_row);
 }
 
 /*
 Advances to the next condition or exits test based on
 experimenter input.
 */
-void advanceExperimentCondition()
+void AdvanceExperimentCondition()
 {
-	if (g_stop) return;
+	if (stop) return;
 
 	// moves to next condition if next condition exists
-	if (!g_trialList.hasNextCondition())
+	if (!trial_list.HasNextCondition())
 	{
 		print("All conditions have been completed...");
-		g_stop = true;
+		stop = true;
 	}
 
 	// creates space for next statement
 	print("");
 
 	// creates input value to ask experimenter if trial should continue to next condition
-	int inputVal = 0;
+	int input_value = 0;
 	print("Please register a save to exit or input CONFIRM_VALUE to continue to next condition...");
-	cin >> inputVal;
+	std::cin >> input_value;
 
 	// loops until a proper response is given
-	while(!g_stop && inputVal != kConfirmValue)
+	while(!stop && input_value != kConfirmValue)
 	{ 
 		print("Please register a save to exit or input CONFIRM_VALUE to continue to next condition...");
-		cin >> inputVal;
+		std::cin >> input_value;
 	}
 
 	// creates space for next statement
 	print("");
 
 	// advances experiment to next trial
-	g_trialList.nextCondition();
+	trial_list.NextCondition();
 }
 
 
@@ -489,83 +490,83 @@ Asks the experimenter for the subject number. Then, if
 relevant, imports trialList and ABS file from previous
 experiment
 */
-void runImportUI(vector<vector<double>>* thresholdOutput)
+void RunImportUI(std::vector<std::vector<double>>* threshold_output)
 {
-	importSubjectNumber();
-	importTrialList();
-	importRecordABS(thresholdOutput);
+	ImportSubjectNumber();
+	ImportTrialList();
+	ImportRecordABS(threshold_output);
 }
 
 /*
 Run a single condition on a user automatically. If
 experimenter enters the exit value, exits the program.
 */
-void runExperimentUI(DaqNI &daqNI,
-					 AtiSensor &atiA,	 AtiSensor &atiB,
-					 MaxonMotor &motorA, MaxonMotor &motorB,
-					 vector<vector<double>>* thresholdOutput)
+void RunExperimentUI(DaqNI &daq_ni,
+					 AtiSensor &ati_a,	 AtiSensor &ati_b,
+					 MaxonMotor &motor_a, MaxonMotor &motor_b,
+					 std::vector<std::vector<double>>* threshold_output)
 {
 	// defines positions of the currrent test cue
-	array<array<double, 2>, 2> posDes;
+	std::array<std::array<double, 2>, 2> position_desired;
 
 	// prints current condition for participant/experimenter 
-	int inputVal = 0;
-	print("Current Condition: " + g_trialList.getConditionName());
+	int input_value = 0;
+	print("Current Condition: " + trial_list.GetConditionName());
 
 	// waits for confirmation before continuing
-	while(inputVal != kConfirmValue)
+	while(input_value != kConfirmValue)
 	{	
 		print("Insert CONFIRM_VALUE when you are ready to begin condition");
-		cin >> inputVal;
+		std::cin >> input_value;
 	}
 
 	// runs trials on the selected condition with data collection
-	while (g_trialList.hasNextAngle())
+	while (trial_list.HasNextAngle())
 	{
 		// check for exit condition
-		if (g_stop) return;
+		if (stop) return;
 
 		// get next experiment cue
-		g_trialList.getTestPositions(posDes);
+		trial_list.GetTestPositions(position_desired);
 
 		// prints current desired test position for debug purposes
-		print(posDes[0]);
+		print(position_desired[0]);
 		
 		// provides cue to user
-		runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
+		RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 
 		// record ABS trial response
-		recordExperimentABS(thresholdOutput);
+		RecordExperimentABS(threshold_output);
 
 		// moves experiment to the next trial within current condition
-		g_trialList.nextAngle();
+		trial_list.NextAngle();
 	}
 
 	// check for exit condition before final cue
-	if (g_stop) return;
+	if (stop) return;
 
 	// get final experiment cue
-	g_trialList.getTestPositions(posDes);
+	trial_list.GetTestPositions(position_desired);
 
 	// provides final cue of condition to user
-	runMovementTrial(posDes, daqNI, atiA, atiB, motorA, motorB);
+	RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 
 	// record final ABS trial response
-	recordExperimentABS(thresholdOutput);
+	RecordExperimentABS(threshold_output);
 }
 
 /*
 Saves the ABS data file as well as the trialList given
 to the participant.
 */
-void runExportUI(vector<vector<double>>* thresholdOutput)
+void RunExportUI(std::vector<std::vector<double>>* threshold_output)
 {
 	// defining the file name for the ABS data file
-	string filename = "/sub" + to_string(g_subject) + "_ABS_data.csv";
-	string filepath = kDataPath + "/data/ABS" + filename;
+	std::string filename = "/sub" + std::to_string(subject) + "_ABS_data.csv";
+	std::string filepath = kDataPath + "/data/ABS" + filename;
 
 	// builds header names for threshold logger
-	const vector<string> HEADER_NAMES = 
+	const std::vector<std::string> header_names = 
 	{ 
 		"Iteration",			"Condition",
 		"AngCurr",				"Interference Angle",
@@ -573,22 +574,22 @@ void runExportUI(vector<vector<double>>* thresholdOutput)
 	};
 
 	// saves the ABS data
-	csv_write_row(filepath, HEADER_NAMES);
-	csv_append_rows(filepath, *thresholdOutput);
+	csv_write_row(filepath, header_names);
+	csv_append_rows(filepath, *threshold_output);
 
 	// information about the current trial the test was exited on
 	print("Test Saved @ ");
-	print("Iteration: " + to_string(g_trialList.getIterationNumber()));
-	print("Condition:" + to_string(g_trialList.getCondNum()) + " - " 
-		+ g_trialList.getConditionName());
-	print("Angle:" + to_string(g_trialList.getAngCurr()) + " - "
-		+ to_string(g_trialList.getAngleNumber()));
+	print("Iteration: " + std::to_string(trial_list.GetIterationNumber()));
+	print("Condition:" + std::to_string(trial_list.GetConditionNum()) + " - " 
+		+ trial_list.GetConditionName());
+	print("Angle:" + std::to_string(trial_list.GetAngleIndex()) + " - "
+		+ std::to_string(trial_list.GetAngleNumber()));
 
 	// exporting the trialList for this subject
 	// defining the file name for the ABS data file
-	filename = "/sub" + to_string(g_subject) + "_trialList.csv";
+	filename = "/sub" + std::to_string(subject) + "_trialList.csv";
 	filepath = kDataPath + "/data/trialList" + filename;
-	g_trialList.exportList(filepath, kTimestamp);
+	trial_list.ExportList(filepath, kTimestamp);
 }
 
 
@@ -598,11 +599,11 @@ void runExportUI(vector<vector<double>>* thresholdOutput)
 /*
 Control C handler to cancel the program at any point and save all data to that point
 */
-bool my_handler(CtrlEvent event) {
+bool MyHandler(CtrlEvent event) {
 	if (event == CtrlEvent::CtrlC) {
 		print("Save and exit registered");
 		print("");
-		g_stop = true;
+		stop = true;
 	}
 	return true;
 }
@@ -614,59 +615,59 @@ bool my_handler(CtrlEvent event) {
 Determines the randomized starting angle for the staircase
 protocol
 */
-array<double,2> staircaseStart(int condNum, int min, int max)
+std::array<double,2> StaircaseStart(int condition_num, int min, int max)
 {
 	// creates a random generator
-	random_device rd;
+	std::random_device random_device;
 
 	// chooses whether to start above or below the threshold
-	uniform_real_distribution<double> distribution(min, max);
-	double startAngle = distribution(rd);  // generates start angle
+	std::uniform_real_distribution<double> distribution(min, max);
+	double startAngle = distribution(random_device);  // generates start angle
 	const double startStep = 1;
 
 	return {startAngle, startStep};
 }
 
 /*
-Outputs current angle combination as a double array. 
+Outputs current angle combination as a double std::array. 
 Current form outputs the angle for the stretch rocker
 first and the squeeze band second. 
 */
-array<array<double, 2>, 2> staircaseTestPos(double angle, int condNum)
+std::array<std::array<double, 2>, 2> StaircaseTestPos(double angle, int condition_num)
 {
 	// define relevant variable containers
-	array<array<double, 2>, 2> posDes;
-	array<double, 2> testPositions;
+	std::array<std::array<double, 2>, 2> position_desired;
+	std::array<double, 2> test_positions;
 
-	// generates test position array and test position array
-	double interferenceAngle = g_trialList.getInterferenceAngle(condNum);
-	testPositions = { angle, interferenceAngle };
+	// generates test position std::array and test position std::array
+	double interferenceAngle = trial_list.GetInterferenceAngle(condition_num);
+	test_positions = { angle, interferenceAngle };
 	
 	// attach zero position for motors to return to after cue
-	posDes[0] = testPositions;
-	posDes[1] = { g_ZERO_ANGLE, g_ZERO_ANGLE };
-	return posDes;
+	position_desired[0] = test_positions;
+	position_desired[1] = { kZero_, kZero_ };
+	return position_desired;
 }
 
 
 /*
 Base control function for the staircase method protocol
 */
-double staircaseTrial(int condNum,		DaqNI &daqNI,
-					AtiSensor &atiA,	AtiSensor &atiB,
-					MaxonMotor &motorA, MaxonMotor &motorB)
+double StaircaseTrial(	int condition_num,		DaqNI &daq_ni,
+						AtiSensor &ati_a,		AtiSensor &ati_b,
+						MaxonMotor &motor_a, 	MaxonMotor &motor_b)
 {
 	// declares relevant variables
-	array<double,2> 	crossovers = {0,0}; // number of crossovers and previous step direction
-	const int 			RANGE_MIN(0);
-	const int			RANGE_MAX(60);
-	array<double,2> 	startVals = staircaseStart(condNum, RANGE_MIN, RANGE_MAX);
-	double angle = 		startVals[0];
-	double step = 		startVals[1];
+	std::array<double,2> 	crossovers = {0,0}; // number of crossovers and previous step direction
+	const int 				kRangeMin(0);
+	const int				kRangeMax(60);
+	std::array<double,2> 	start_values = StaircaseStart(condition_num, kRangeMin, kRangeMax);
+	double angle = 			start_values[0];
+	double step = 			start_values[1];
 
-	print(g_trialList.getConditionName(condNum));
-	print("Starting at: " + to_string(angle));
-	vector<Key> inputKeys = 
+	print(trial_list.GetConditionName(condition_num));
+	print("Starting at: " + std::to_string(angle));
+	std::vector<Key> input_keys = 
 	{ 
 		Key::Add, 		Key::Up,
 		Key::Subtract,	Key::Down,
@@ -679,9 +680,9 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 	while(crossovers[0] <= 5)
 	{
 		// runs next movement trial
-		runMovementTrial(staircaseTestPos(angle, condNum), daqNI, atiA, atiB, motorA, motorB);
+		RunMovementTrial(StaircaseTestPos(angle, condition_num), daq_ni, ati_a, ati_b, motor_a, motor_b);
 		
-		Keyboard::wait_for_any_keys(inputKeys);
+		Keyboard::wait_for_any_keys(input_keys);
 
 		if(	Keyboard::is_key_pressed(Key::Add) || Keyboard::is_key_pressed(Key::Up))
 		{
@@ -693,10 +694,10 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 			crossovers[1] = angle;
 
 			// increases angle by step size
-			if((angle+step) <= RANGE_MAX)
+			if((angle+step) <= kRangeMax)
 				angle += step;
 			else
-				angle = RANGE_MAX; 
+				angle = kRangeMax; 
 		}
 		else if(Keyboard::is_key_pressed(Key::Subtract) || Keyboard::is_key_pressed(Key::Down))
 		{
@@ -708,10 +709,10 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 			crossovers[1] = angle;
 
 			// decreases angle by step size
-			if((angle-step) >= RANGE_MIN)
+			if((angle-step) >= kRangeMin)
 				angle -= step;
 			else
-				angle = RANGE_MIN;
+				angle = kRangeMin;
 		}
 		else if(Keyboard::is_key_pressed(Key::Comma) || Keyboard::is_key_pressed(Key::Left))
 			step /= 2; 
@@ -719,7 +720,7 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 			step *= 2; 
 		else return NULL;
 		
-		print("Angle: " + to_string(angle) + " Step: " + to_string(step));
+		print("Angle: " + std::to_string(angle) + " Step: " + std::to_string(step));
 	}
 
 	if(crossovers[1] < angle)
@@ -727,41 +728,41 @@ double staircaseTrial(int condNum,		DaqNI &daqNI,
 	else if(crossovers[1] > angle)
 		angle = (angle + step/2); 
 
-	print("Final angle of threshold is: " + to_string(angle));
+	print("Final angle of threshold is: " + std::to_string(angle));
 	print("");
 	return angle;
 }
 
-void staircaseRunAll(vector<vector<double>> &thresholdOutput, DaqNI &daqNI,
-					AtiSensor &atiA,	AtiSensor &atiB,
-					MaxonMotor &motorA, MaxonMotor &motorB,
-					int TRIALNUM)
+void StaircaseRunAll(std::vector<std::vector<double>> &threshold_output, DaqNI &daq_ni,
+					AtiSensor &ati_a,	AtiSensor &ati_b,
+					MaxonMotor &motor_a, MaxonMotor &motor_b,
+					int trial_num)
 {
 	// creates a random generator
-	random_device rd;
+	std::random_device random_device;
 
 	// create random range
-	auto rng = default_random_engine{ rd() };
+	auto rng = std::default_random_engine{ random_device() };
 
 	// declare list of conditions for this experiment
 	const int NUMBER_CONDITIONS = 9;
-	array<int, NUMBER_CONDITIONS> conditions = { 0,1,2,3,4,5,6,7,8 };
+	std::array<int, NUMBER_CONDITIONS> conditions = { 0,1,2,3,4,5,6,7,8 };
 
 	// generate random ordering of conditions
 	shuffle(conditions.begin(), conditions.end(), rng);
 
-	for(int condItr = 0; condItr < NUMBER_CONDITIONS; condItr ++)
+	for(int condition_iterator = 0; condition_iterator < NUMBER_CONDITIONS; condition_iterator ++)
 	{
-		vector<double> conditionOutput;
-		conditionOutput.push_back(conditions[condItr]);
+		std::vector<double> condition_output;
+		condition_output.push_back(conditions[condition_iterator]);
 
-		for(int i = 0; i < TRIALNUM; i++)
+		for(int i = 0; i < trial_num; i++)
 		{
-			double angle = staircaseTrial(conditions[condItr], daqNI, atiA, atiB, motorA, motorB);
-			conditionOutput.push_back(angle);
+			double angle = StaircaseTrial(conditions[condition_iterator], daq_ni, ati_a, ati_b, motor_a, motor_b);
+			condition_output.push_back(angle);
 		}
 		print("Condition completed");
-		thresholdOutput.push_back(conditionOutput);
+		threshold_output.push_back(condition_output);
 	}	
 }
 
@@ -773,34 +774,34 @@ void staircaseRunAll(vector<vector<double>> &thresholdOutput, DaqNI &daqNI,
 /*
 Main function of the program references all other functions
 */
-int main(int argc, char* argv[])
+int Main(int argc, char* argv[])
 {
 	// registers the mel handler to exit the program using Ctrl-c
-	register_ctrl_handler(my_handler);
+	register_ctrl_handler(MyHandler);
 
 	// creates all neccesary objects for the program
-	DaqNI					daqNI;					// creates a new analog input from the NI DAQ
-	AtiSensor				atiA, atiB;				// create the ATI FT Sensors
-	MaxonMotor				motorA, motorB;			// create new motors
-	vector<vector<double>>	thresholdOutput;		// creates pointer to the output data file for the experiment
+	DaqNI					daq_ni;					// creates a new analog input from the NI DAQ
+	AtiSensor				ati_a, ati_b;				// create the ATI FT Sensors
+	MaxonMotor				motor_a, motor_b;			// create new motors
+	std::vector<std::vector<double>>	threshold_output;		// creates pointer to the output data file for the experiment
 	
 	// Sensor Initialization
 	// calibrate the FT sensors 
-	atiA.load_calibration("FT26062.cal");
-	atiB.load_calibration("FT26061.cal");
+	ati_a.load_calibration("FT26062.cal");
+	ati_b.load_calibration("FT26061.cal");
 
 	// set channels used for the FT sensors
-	atiA.set_channels(daqNI[{ 0, 1, 2, 3, 4, 5 }]);	 
-	atiB.set_channels(daqNI[{ 16, 17, 18, 19, 20, 21 }]);
+	ati_a.set_channels(daq_ni[{ 0, 1, 2, 3, 4, 5 }]);	 
+	ati_b.set_channels(daq_ni[{ 16, 17, 18, 19, 20, 21 }]);
 
 	// zero the ATI FT sensors 
-	daqNI.update();
-	atiA.zero();
-	atiB.zero();
+	daq_ni.update();
+	ati_a.zero();
+	ati_b.zero();
 	
 	// Motor Initialization
-	motorInitialize(motorA, (char*)"USB0");
-	motorInitialize(motorB, (char*)"USB1");
+	MotorInitialize(motor_a, (char*)"USB0");
+	MotorInitialize(motor_b, (char*)"USB1");
 
 	// Defines and parses console options
     Options options("AIMS_Control.exe", "AIMS Testbed Control");
@@ -823,15 +824,15 @@ int main(int argc, char* argv[])
 		print("");
 
 		// sets to staircase mode
-		g_staircase = true;
+		staircase_flag = true;
 
 		// imports the current subject number
-		importSubjectNumber();
+		ImportSubjectNumber();
 
 		// defines the number of trials run for each conditon
-		const int TRIALNUM(2);
+		const int kTrialNum(2);
 
-		while(!g_stop)
+		while(!stop)
 		{
 			print("Please select desired condition to test:");
 			print("0) Stretch with no interference and minimum distance between cues");
@@ -846,30 +847,30 @@ int main(int argc, char* argv[])
 			print("9) To randomly go through all conditions");
 			print("CTRL+C) To end staircase protocol");
 
-			int inputVal = -1;
-			cin >> inputVal;
-			if(inputVal >= 0 && inputVal < 9)
+			int input_value = -1;
+			std::cin >> input_value;
+			if(input_value >= 0 && input_value < 9)
 			{
-				vector<double> conditionOutput;
-				conditionOutput.push_back(inputVal);
+				std::vector<double> condition_output;
+				condition_output.push_back(input_value);
 
-				for(int i = 0; i < TRIALNUM; i++)
+				for(int i = 0; i < kTrialNum; i++)
 				{
-					double angle = staircaseTrial(inputVal, daqNI, atiA, atiB, motorA, motorB);
-					conditionOutput.push_back(angle);
+					double angle = StaircaseTrial(input_value, daq_ni, ati_a, ati_b, motor_a, motor_b);
+					condition_output.push_back(angle);
 				}
 
 				print("Condition completed");
-				thresholdOutput.push_back(conditionOutput);
+				threshold_output.push_back(condition_output);
 			}
-			else if(inputVal == 9)
+			else if(input_value == 9)
 			{
-				staircaseRunAll(thresholdOutput, daqNI, atiA, atiB, motorA, motorB, TRIALNUM);
+				StaircaseRunAll(threshold_output, daq_ni, ati_a, ati_b, motor_a, motor_b, kTrialNum);
 			}
 		}
-		string filename = "/sub" + to_string(g_subject) + "_data.csv";
-		string filepath = kDataPath + "/staircase" + filename;
-		csv_append_rows(filepath, thresholdOutput);
+		std::string filename = "/sub" + std::to_string(subject) + "_data.csv";
+		std::string filepath = kDataPath + "/staircase" + filename;
+		csv_append_rows(filepath, threshold_output);
 		print("Staircase output data saved");
 	}
 
@@ -878,20 +879,20 @@ int main(int argc, char* argv[])
 	{		 
 		// User Interaction Portion of Program
 		// import relevant data or creates new data structures
-		runImportUI(&thresholdOutput);
+		RunImportUI(&threshold_output);
 
 		// runs ABS experimental protocol automatically
-		while (!g_stop)
+		while (!stop)
 		{
 			// runs a full condition unless interupted
-			runExperimentUI(daqNI, atiA, atiB, motorA, motorB, &thresholdOutput);
+			RunExperimentUI(daq_ni, ati_a, ati_b, motor_a, motor_b, &threshold_output);
 
 			// advance to the next condition if another condition exists
-			advanceExperimentCondition();		
+			AdvanceExperimentCondition();		
 		}
 
 		// exports relevant ABS data
-		runExportUI(&thresholdOutput);
+		RunExportUI(&threshold_output);
 	}
 
 	// informs user that the application is over

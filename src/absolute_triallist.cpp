@@ -306,7 +306,7 @@ int TrialList::GetConditionNum()
 /*
 Returns current index for the angle
 */
-int TrialList::GetCurrentAngle()
+int TrialList::GetAngleIndex()
 {
 	return angle_iterator_;
 }

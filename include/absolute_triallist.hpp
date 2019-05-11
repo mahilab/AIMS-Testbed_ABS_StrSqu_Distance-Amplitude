@@ -103,7 +103,7 @@ public:
 
 	// get iterator positions
 	int		GetConditionNum();
-	int		GetCurrentAngle();	
+	int		GetAngleIndex();	
 
 	// inport/export functions
 	bool	ImportList(std::string filepath);

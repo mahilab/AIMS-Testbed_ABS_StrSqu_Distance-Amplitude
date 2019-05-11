@@ -28,14 +28,14 @@ link_directories(
 
 # create application
 add_executable(threshold_tests
-    include/maxonmotor.hpp
+    include/maxon_motor.hpp
     include/absolute_triallist.hpp
     include/absolute_staircase.hpp
-    include/DaqNI.hpp
-    src/maxonMotor.cpp
+    include/daq_ni.hpp
+    src/maxon_motor.cpp
     src/absolute_triallist.cpp
     src/absolute_staircase.cpp
-    src/DaqNI.cpp
+    src/daq_ni.cpp
     src/threshold_tests.cpp
 )
 
