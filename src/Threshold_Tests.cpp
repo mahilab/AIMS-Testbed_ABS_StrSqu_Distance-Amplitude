@@ -1,5 +1,5 @@
 /*
-File: Threshold_Tests.cpp
+File: threshold_tests.cpp
 ________________________________
 Author(s): Zane Zook (gadzooks@rice.edu)
 Edited By: Andrew Low (andrew.low@rice.edu)
@@ -611,159 +611,68 @@ bool MyHandler(CtrlEvent event) {
 /***********************************************************
 ****************** STAIRCASE FUNCTIONS *********************
 ************************************************************/
-/*
-Determines the randomized starting angle for the staircase
-protocol
-*/
-std::array<double,2> StaircaseStart(int condition_num, int min, int max)
+void RunStaircaseUI(DaqNI &daq_ni,
+					AtiSensor &ati_a,	 AtiSensor &ati_b,
+					MaxonMotor &motor_a, MaxonMotor &motor_b)
 {
-	// creates a random generator
-	std::random_device random_device;
-
-	// chooses whether to start above or below the threshold
-	std::uniform_real_distribution<double> distribution(min, max);
-	double startAngle = distribution(random_device);  // generates start angle
-	const double startStep = 1;
-
-	return {startAngle, startStep};
-}
-
-/*
-Outputs current angle combination as a double std::array. 
-Current form outputs the angle for the stretch rocker
-first and the squeeze band second. 
-*/
-std::array<std::array<double, 2>, 2> StaircaseTestPos(double angle, int condition_num)
-{
-	// define relevant variable containers
+	// define relevant variable containers for desire position
 	std::array<std::array<double, 2>, 2> position_desired;
-	std::array<double, 2> test_positions;
 
-	// generates test position std::array and test position std::array
-	double interferenceAngle = trial_list.GetInterferenceAngle(condition_num);
-	test_positions = { angle, interferenceAngle };
-	
-	// attach zero position for motors to return to after cue
-	position_desired[0] = test_positions;
-	position_desired[1] = { kZero_, kZero_ };
-	return position_desired;
-}
+	// prompt user with options
+	print("Please select desired condition to test:");
+	print("0) Stretch with no interference and minimum distance between cues");
+	print("1) Stretch with no interference and medium distance between cues");
+	print("2) Stretch with no interference and maximum distance between cues");
+	print("3) Stretch with low squeeze interference and minimum distance between cues");
+	print("4) Stretch with low squeeze interference and medium distance between cues");
+	print("5) Stretch with low squeeze interference and maximum distance between cues");
+	print("6) Stretch with high squeeze interference and minimum distance between cues");
+	print("7) Stretch with high squeeze interference and medium distance between cues");
+	print("8) Stretch with high squeeze interference and maximum distance between cues");
+	print("9) To randomly go through all conditions");
+	print("CTRL+C) To end staircase protocol");
 
+	// recieve user input
+	int input_value = -1;
+	std::cin >> input_value;
 
-/*
-Base control function for the staircase method protocol
-*/
-double StaircaseTrial(	int condition_num,		DaqNI &daq_ni,
-						AtiSensor &ati_a,		AtiSensor &ati_b,
-						MaxonMotor &motor_a, 	MaxonMotor &motor_b)
-{
-	// declares relevant variables
-	std::array<double,2> 	crossovers = {0,0}; // number of crossovers and previous step direction
-	const int 				kRangeMin(0);
-	const int				kRangeMax(60);
-	std::array<double,2> 	start_values = StaircaseStart(condition_num, kRangeMin, kRangeMax);
-	double angle = 			start_values[0];
-	double step = 			start_values[1];
-
-	print(trial_list.GetConditionName(condition_num));
-	print("Starting at: " + std::to_string(angle));
-	std::vector<Key> input_keys = 
-	{ 
-		Key::Add, 		Key::Up,
-		Key::Subtract,	Key::Down,
-		Key::Comma,		Key::Left,
-		Key::Period,	Key::Right,
-		Key::LControl,	Key::RControl
-	};
-	
-	// repeats protocol until method has had at least 5 crossovers
-	while(crossovers[0] <= 5)
+	// run specific condition based on user input
+	if(input_value >= 0 && input_value < 9)
 	{
-		// runs next movement trial
-		RunMovementTrial(StaircaseTestPos(angle, condition_num), daq_ni, ati_a, ati_b, motor_a, motor_b);
-		
-		Keyboard::wait_for_any_keys(input_keys);
-
-		if(	Keyboard::is_key_pressed(Key::Add) || Keyboard::is_key_pressed(Key::Up))
+		staircase.SetConditionNum(input_value);
+		print(staircase.GetConditionName());
+		while(!staircase.HasSettled())
 		{
-			// increments or zeroes number of crossovers if neccesary
-			if(crossovers[1] > angle)
-				crossovers[0] += 1;
-			else
-				crossovers[0] = 0;		
-			crossovers[1] = angle;
-
-			// increases angle by step size
-			if((angle+step) <= kRangeMax)
-				angle += step;
-			else
-				angle = kRangeMax; 
+			staircase.GetTestPositions(position_desired);
+			RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
+			staircase.ReadInput();
 		}
-		else if(Keyboard::is_key_pressed(Key::Subtract) || Keyboard::is_key_pressed(Key::Down))
-		{
-			// increments or zeroes number of crossovers if neccesary
-			if(crossovers[1] < angle)
-				crossovers[0] += 1;
-			else
-				crossovers[0] = 0;		
-			crossovers[1] = angle;
-
-			// decreases angle by step size
-			if((angle-step) >= kRangeMin)
-				angle -= step;
-			else
-				angle = kRangeMin;
-		}
-		else if(Keyboard::is_key_pressed(Key::Comma) || Keyboard::is_key_pressed(Key::Left))
-			step /= 2; 
-		else if(Keyboard::is_key_pressed(Key::Period) || Keyboard::is_key_pressed(Key::Right))
-			step *= 2; 
-		else return NULL;
-		
-		print("Angle: " + std::to_string(angle) + " Step: " + std::to_string(step));
+		print("Trial Completed");
 	}
 
-	if(crossovers[1] < angle)
-		angle = (angle - step/2); 
-	else if(crossovers[1] > angle)
-		angle = (angle + step/2); 
-
-	print("Final angle of threshold is: " + std::to_string(angle));
-	print("");
-	return angle;
-}
-
-void StaircaseRunAll(std::vector<std::vector<double>> &threshold_output, DaqNI &daq_ni,
-					AtiSensor &ati_a,	AtiSensor &ati_b,
-					MaxonMotor &motor_a, MaxonMotor &motor_b,
-					int trial_num)
-{
-	// creates a random generator
-	std::random_device random_device;
-
-	// create random range
-	auto rng = std::default_random_engine{ random_device() };
-
-	// declare list of conditions for this experiment
-	const int NUMBER_CONDITIONS = 9;
-	std::array<int, NUMBER_CONDITIONS> conditions = { 0,1,2,3,4,5,6,7,8 };
-
-	// generate random ordering of conditions
-	shuffle(conditions.begin(), conditions.end(), rng);
-
-	for(int condition_iterator = 0; condition_iterator < NUMBER_CONDITIONS; condition_iterator ++)
+	// runs through all conditions with the staircase method
+	else if(input_value == 9)
 	{
-		std::vector<double> condition_output;
-		condition_output.push_back(conditions[condition_iterator]);
-
-		for(int i = 0; i < trial_num; i++)
+		print(staircase.GetConditionName());
+		while(!stop)
 		{
-			double angle = StaircaseTrial(conditions[condition_iterator], daq_ni, ati_a, ati_b, motor_a, motor_b);
-			condition_output.push_back(angle);
+			while(!staircase.HasSettled())
+			{
+				staircase.GetTestPositions(position_desired);
+				RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
+				staircase.ReadInput();
+			}
+			print("Trial Completed");
+			if(staircase.HasNextTrial())
+				staircase.NextTrial();
+			else if(staircase.HasNextCondition())
+			{
+				print("Condition Completed");
+				staircase.NextCondition();
+				print(staircase.GetConditionName());
+			}
 		}
-		print("Condition completed");
-		threshold_output.push_back(condition_output);
-	}	
+	}
 }
 
 
@@ -774,7 +683,7 @@ void StaircaseRunAll(std::vector<std::vector<double>> &threshold_output, DaqNI &
 /*
 Main function of the program references all other functions
 */
-int Main(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	// registers the mel handler to exit the program using Ctrl-c
 	register_ctrl_handler(MyHandler);
@@ -819,59 +728,22 @@ int Main(int argc, char* argv[])
 	// runs staircase method protocol if selected
 	if (input.count("s") > 0)
 	{
-		print("");
-		print("Beginning staircase method control...");
-		print("");
-
 		// sets to staircase mode
 		staircase_flag = true;
 
 		// imports the current subject number
 		ImportSubjectNumber();
 
-		// defines the number of trials run for each conditon
-		const int kTrialNum(2);
-
+		// runs staircase method until directed to exit
 		while(!stop)
 		{
-			print("Please select desired condition to test:");
-			print("0) Stretch with no interference and minimum distance between cues");
-			print("1) Stretch with no interference and medium distance between cues");
-			print("2) Stretch with no interference and maximum distance between cues");
-			print("3) Stretch with low squeeze interference and minimum distance between cues");
-			print("4) Stretch with low squeeze interference and medium distance between cues");
-			print("5) Stretch with low squeeze interference and maximum distance between cues");
-			print("6) Stretch with high squeeze interference and minimum distance between cues");
-			print("7) Stretch with high squeeze interference and medium distance between cues");
-			print("8) Stretch with high squeeze interference and maximum distance between cues");
-			print("9) To randomly go through all conditions");
-			print("CTRL+C) To end staircase protocol");
-
-			int input_value = -1;
-			std::cin >> input_value;
-			if(input_value >= 0 && input_value < 9)
-			{
-				std::vector<double> condition_output;
-				condition_output.push_back(input_value);
-
-				for(int i = 0; i < kTrialNum; i++)
-				{
-					double angle = StaircaseTrial(input_value, daq_ni, ati_a, ati_b, motor_a, motor_b);
-					condition_output.push_back(angle);
-				}
-
-				print("Condition completed");
-				threshold_output.push_back(condition_output);
-			}
-			else if(input_value == 9)
-			{
-				StaircaseRunAll(threshold_output, daq_ni, ati_a, ati_b, motor_a, motor_b, kTrialNum);
-			}
+			RunStaircaseUI(daq_ni, ati_a, ati_b, motor_a, motor_b);
 		}
+
+		// exports staircase method output
 		std::string filename = "/sub" + std::to_string(subject) + "_data.csv";
 		std::string filepath = kDataPath + "/staircase" + filename;
-		csv_append_rows(filepath, threshold_output);
-		print("Staircase output data saved");
+		staircase.ExportList(filepath);
 	}
 
 	// runs standard method of constants protocol in all other cases

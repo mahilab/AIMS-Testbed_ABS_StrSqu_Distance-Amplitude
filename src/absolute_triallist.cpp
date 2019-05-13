@@ -14,10 +14,6 @@ Absolute Threshold experiment.
 // libraries for TrialList Class
 #include "absolute_triallist.hpp"
 
-// libraries for MEL
-#include <MEL/Logging/Csv.hpp>
-#include <MEL/Core/Console.hpp>
-
 // string libraries
 #include <string>
 
@@ -352,7 +348,7 @@ Exports trialList to a saved file
 void TrialList::ExportList(std::string filepath, bool timestamp)
 {
 	// create new data logger and prepare output trialList file
-	const vector<std::string> HEADER_NAMES = 
+	const vector<std::string> kHeaderNames = 
 	{ 
 		"0=Str_No_Min",
 		"1=Str_No_Mid",
@@ -364,10 +360,10 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 		"7=StrXSqu_Hi_Mid",
 		"8=StrXSqu_Hi_Max"
 	};
-	mel::csv_write_row(filepath, HEADER_NAMES);
+	mel::csv_write_row(filepath, kHeaderNames);
 
 	// output order of conditions_ in current test
-	vector<double> outputRow = 
+	vector<double> output_row = 
 	{
 		(double)conditions_[0], 
 		(double)conditions_[1],
@@ -379,7 +375,7 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 		(double)conditions_[7],
 		(double)conditions_[8]
 	};	
-	mel::csv_append_row(filepath, outputRow);
+	mel::csv_append_row(filepath, output_row);
 
 	// output order of all angle values in current test
 	std::array<std::array<double, kNumberConditions_>, kNumberAngles_ * kNumberTrials_> output;
@@ -393,12 +389,12 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 	// output order of all angle values in current test
 	// for (int i = 0; i < kNumberAngles_*kNumberTrials_; i++)
 	// {
-	// 	outputRow = { 
+	// 	output_row = { 
 	// 		angles_[0][i], 
 	// 		angles_[1][i],
 	// 		angles_[2][i]
 	// 		};
-	// 	csv_append_row(filepath, outputRow);
+	// 	csv_append_row(filepath, output_row);
 	// 	print_string(".");
 	// }
 	// creates space for next statement
