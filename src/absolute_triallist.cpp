@@ -14,9 +14,6 @@ Absolute Threshold experiment.
 // libraries for TrialList Class
 #include "absolute_triallist.hpp"
 
-// namespace for std
-// using namespace std;
-
 
 /***********************************************************
 ********************** CONSTRUCTOR *************************
