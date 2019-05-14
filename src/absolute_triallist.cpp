@@ -14,11 +14,8 @@ Absolute Threshold experiment.
 // libraries for TrialList Class
 #include "absolute_triallist.hpp"
 
-// string libraries
-#include <string>
-
 // namespace for std
-using namespace std;
+// using namespace std;
 
 
 /***********************************************************
@@ -63,7 +60,7 @@ Outputs current condition and angle name
 */
 std::string TrialList::GetTrialName(int condition, int angle)
 {
-	return GetConditionName(condition) + "_" + to_string(GetAngleNumber(condition, angle));
+	return GetConditionName(condition) + "_" + std::to_string(GetAngleNumber(condition, angle));
 }
 
 /*
@@ -109,15 +106,15 @@ int TrialList::GetIterationNumber(int condition, int angle)
 void TrialList::scramble()
 {
 	// create random range
-	auto rng = default_random_engine{ random_device_() };
+	auto rng = std::default_random_engine{ random_device_() };
 
 	// generate random ordering of angles_ in each of the conditions_
 	for (int i = 0; i < kNumberConditions_; i++) {
-		shuffle(angles_[i].begin(), angles_[i].end(), rng);
+		std::shuffle(angles_[i].begin(), angles_[i].end(), rng);
 	}
 
 	// generate random ordering of conditions_
-	shuffle(conditions_.begin(), conditions_.end(), rng);
+	std::shuffle(conditions_.begin(), conditions_.end(), rng);
 }
 
 
@@ -203,7 +200,7 @@ std::string TrialList::GetComboNames()
 	for (int i = 0; i < kNumberConditions_; i++) {
 		std::array<double, kNumberAngles_*kNumberTrials_> local_array = angles_[i];
 		for (int j = 0; j < kNumberAngles_*kNumberTrials_; j++) {
-			combo_names += to_string(GetIterationNumber(i, j)) + ": " + GetTrialName(i, j) + "\n";
+			combo_names += std::to_string(GetIterationNumber(i, j)) + ": " + GetTrialName(i, j) + "\n";
 		}
 	}
 	return combo_names;
@@ -348,7 +345,7 @@ Exports trialList to a saved file
 void TrialList::ExportList(std::string filepath, bool timestamp)
 {
 	// create new data logger and prepare output trialList file
-	const vector<std::string> kHeaderNames = 
+	const std::vector<std::string> kHeaderNames = 
 	{ 
 		"0=Str_No_Min",
 		"1=Str_No_Mid",
@@ -363,7 +360,7 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 	mel::csv_write_row(filepath, kHeaderNames);
 
 	// output order of conditions_ in current test
-	vector<double> output_row = 
+	std::vector<double> output_row = 
 	{
 		(double)conditions_[0], 
 		(double)conditions_[1],

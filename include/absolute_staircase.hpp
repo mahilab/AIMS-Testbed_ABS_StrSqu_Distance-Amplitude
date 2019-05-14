@@ -27,10 +27,10 @@ Requires MEL to build.
 ******************* GLOBAL VARIABLES ***********************
 ************************************************************/
 const int 	kConditions_(9);
-const int	kTrials_(3);
-const int	kCrossoversRequired(2);
-const int 	kInterferenceLow_(10); //36
-const int 	kInterferenceHigh_(20); //72
+const int	kTrials_(5);
+const int	kCrossoversRequired(5);
+const int 	kInterferenceLow_(36); //36
+const int 	kInterferenceHigh_(72); //72
 const int 	kZero_(0);
 const int   kRangeMin_(0);
 const int   kRangeMax_(30);

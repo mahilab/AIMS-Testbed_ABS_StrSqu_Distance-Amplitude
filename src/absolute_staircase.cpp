@@ -53,7 +53,6 @@ Resets values for next condition
 void Staircase::ConditionInitialize()
 {
     // resets the trial counter and the step size
-    step_ = 1; // step_ size 
     trial_iterator_ = 0; // number of switches in method
 
 	// initializes a new trial
@@ -65,10 +64,12 @@ Resets values for next trial
 */
 void Staircase::TrialInitialize()
 {
-    // chooses whether to start above or below the threshold
+    // chooses random starting location in range 
 	std::uniform_real_distribution<double> distribution(kRangeMin_, kRangeMax_);
 	angle_ = distribution(random_device_);  // generates start angle
-    
+    step_ = 1; // step_ size 
+
+
     // sets other initial values
     previous_angle_ = angle_; 
     crossovers_ = 0; // number of switches in method
@@ -160,7 +161,7 @@ bool Staircase::HasSettled()
 {
 	if(crossovers_ >= kCrossoversRequired - 1)
 	{
-		final_angles_[trial_iterator_][condition_iterator_] = (angle_ + previous_angle_) / 2;
+		final_angles_[condition_true_][trial_iterator_] = (angle_ + previous_angle_) / 2;
 		return true;
 	}
 	else return false;
@@ -275,7 +276,7 @@ bool Staircase::ReadInput()
 	else return false;
 	
     // outputs the current angle_ and step_ size for debugging purposes
-	mel::print("Angle: " + std::to_string(angle_) + " Step: " + std::to_string(step_));
+	mel::print("Angle: " + std::to_string(angle_) + " Previous Angle: " + std::to_string(previous_angle_) + " Step: " + std::to_string(step_));
     return true;
 }
 
