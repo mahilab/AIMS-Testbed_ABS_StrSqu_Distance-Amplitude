@@ -604,9 +604,6 @@ void RunStaircaseUI(DaqNI &daq_ni,
 	// define relevant variable containers for desire position
 	std::array<std::array<double, 2>, 2> position_desired;
 
-	// creates timer to force the input loop to be slow enough for a user to react
-	mel::Timer timer(mel::Frequency(hertz(10)));
-
 	// prompt user with options
 	print("Please select desired condition to test:");
 	print("0) Stretch with no interference and minimum distance between cues");
@@ -635,7 +632,6 @@ void RunStaircaseUI(DaqNI &daq_ni,
 			staircase.GetTestPositions(position_desired);
 			RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 			staircase.ReadInput();
-			timer.wait();
 		}
 		print("Trial Completed");
 	}
@@ -651,7 +647,6 @@ void RunStaircaseUI(DaqNI &daq_ni,
 				staircase.GetTestPositions(position_desired);
 				RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 				staircase.ReadInput();
-				timer.wait();
 			}
 			print("Trial Completed");
 			if(staircase.HasNextTrial())

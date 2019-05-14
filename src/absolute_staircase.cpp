@@ -54,6 +54,7 @@ void Staircase::ConditionInitialize()
 {
     // resets the trial counter and the step size
     trial_iterator_ = 0; // number of switches in method
+	crossovers_ = 0; // number of switches in method
 
 	// initializes a new trial
 	TrialInitialize();
@@ -70,24 +71,13 @@ void Staircase::TrialInitialize()
 
 	// loads initial step value for the condition
 	step_ = kInitialStepValues_[condition_true_];
-
-    // sets other initial values
-    previous_angle_ = angle_; 
-    crossovers_ = 0; // number of switches in method
+	previous_angle_ = angle_;
 }
 
 
 /***********************************************************
 ******************** NAME FUNCTIONS ************************
 ************************************************************/
-/*
-Outputs current condition and angle_ name
-*/
-std::string Staircase::GetTrialName()
-{
-	return GetConditionName() + "_" + std::to_string(angle_);
-}
-
 /*
 Returns the name for the current condition
 */
@@ -160,9 +150,14 @@ conclude that the user has settled on a value and saves it
 */
 bool Staircase::HasSettled()
 {
-	if(crossovers_ >= kCrossoversRequired - 1)
+	if(crossovers_ >= kCrossoversRequired_ - 1)
 	{
-		final_angles_[condition_true_][trial_iterator_] = (angle_ + previous_angle_) / 2;
+		double average;
+		for(int i = 0; i < kCrossoversRequired_; i++){
+			average += crossover_angles_[i];
+		}
+		average = average / kCrossoversRequired_;
+		final_angles_[condition_true_][trial_iterator_] = average;
 		return true;
 	}
 	else return false;
@@ -231,6 +226,27 @@ bool Staircase::SetConditionNum(int condition_num)
 ************************ UI FUNCTIONS **********************
 ************************************************************/
 /*
+Pauses advancement of the program until the specified
+keys are all released
+*/
+void Staircase::WaitForKeyRelease(std::vector<mel::Key> keys)
+{
+	bool pressed = true;
+	while(pressed)
+	{
+		for(int i = 0; i < keys.size(); i++)
+		{
+			if(!mel::Keyboard::is_key_pressed(keys[i]))
+			{
+				pressed = false;
+			}
+			else
+				pressed = true;			
+		}
+	}
+}
+
+/*
 Reads in response from the user regarding the most recent
 stimuli
 */
@@ -241,10 +257,11 @@ bool Staircase::ReadInput()
 	if(mel::Keyboard::is_key_pressed(mel::Key::Add) || mel::Keyboard::is_key_pressed(mel::Key::Up))
 	{
 		// increments or zeroes number of crossovers_ if neccesary
-		if(previous_angle_ > angle_)   
-			crossovers_ += 1;
-		else                    
-			crossovers_ = 0;		
+		if(previous_angle_ > angle_)
+		{   
+			crossover_angles_[crossovers_] = angle_;
+			crossovers_ += 1;	
+		}	
 		previous_angle_ = angle_;
 
 		// increases angle_ by step_ size
@@ -252,14 +269,18 @@ bool Staircase::ReadInput()
 			angle_ += step_;
 		else                        	
 			angle_ = kRangeMax_[condition_true_]; 
+
+		// waits until key release before advancing
+		WaitForKeyRelease({mel::Key::Add, mel::Key::Up});
 	}
 	else if(mel::Keyboard::is_key_pressed(mel::Key::Subtract) || mel::Keyboard::is_key_pressed(mel::Key::Down))
 	{
 		// increments or zeroes number of crossovers_ if neccesary
-		if(previous_angle_ < angle_)   
-			crossovers_ += 1;
-		else        			
-			crossovers_ = 0;		
+		if(previous_angle_ < angle_)   		
+		{   
+			crossover_angles_[crossovers_] = angle_;
+			crossovers_ += 1;	
+		}		
 		previous_angle_ = angle_;
 
 		// decreases angle_ by step_ size
@@ -267,13 +288,26 @@ bool Staircase::ReadInput()
 			angle_ -= step_;
 		else                			
 			angle_ = kRangeMin_;
+
+		// waits until key release before advancing
+		WaitForKeyRelease({mel::Key::Subtract, mel::Key::Down});
 	}
 	else if(mel::Keyboard::is_key_pressed(mel::Key::Comma) || mel::Keyboard::is_key_pressed(mel::Key::Left))
+	{	
 		// halves the step_ size if step_ size is to be reduced
         step_ /= 2; 
+
+		// waits until key release before advancing
+		WaitForKeyRelease({mel::Key::Comma, mel::Key::Left});
+	}
 	else if(mel::Keyboard::is_key_pressed(mel::Key::Period) || mel::Keyboard::is_key_pressed(mel::Key::Right))
+	{
 		// doubles the step_ size if step_ size is to be increased
         step_ *= 2; 
+
+		// waits until key release before advancing
+		WaitForKeyRelease({mel::Key::Period, mel::Key::Right});
+	}
 	else return false;
 	
     // outputs the current angle_ and step_ size for debugging purposes

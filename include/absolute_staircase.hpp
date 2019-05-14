@@ -27,16 +27,16 @@ Requires MEL to build.
 ************************ CONSTANTS *************************
 ************************************************************/
 const int 	kConditions_(9);
-const int	kTrials_(5);
-const int	kCrossoversRequired(5);
+const int	kTrials_(1);
+const int	kCrossoversRequired_(10);
 const int 	kInterferenceLow_(26); //36
 const int 	kInterferenceHigh_(52); //72
 const int 	kZero_(0);
 const int   kRangeMin_(0);
-const std::array<int, kConditions_> kRangeMax_ = 
-	{0.1,0.1,0.1,60,60,60,90,90,90};
-const std::array<int, kConditions_> kInitialStepValues_ =
-	{0.05,0.05,0.05,1,1,1,2,2,2};
+const std::array<double, kConditions_> kRangeMax_ = 
+	{1,1,1,60,60,60,90,90,90};
+const std::array<double, kConditions_> kInitialStepValues_ =
+	{0.05,0.05,0.05,2,2,2,4,4,4};
 
 
 /***********************************************************
@@ -47,6 +47,7 @@ class Staircase
 private:
     // private array variables
 	std::array<std::array<double, kTrials_>, kConditions_> final_angles_; // array of arrays that hold angle positions from the method
+	std::array<double, kCrossoversRequired_>  crossover_angles_;	
 	std::array<std::string, kConditions_> condition_names_ = 
 		{
 		"Stretch_None_Min",
@@ -60,7 +61,7 @@ private:
 		"StretchXSqueeze_High_Max"
 		}; // array of conditions
 	std::array<int, kConditions_> conditions_ = { 0,1,2,3,4,5,6,7,8 };
-	
+		
     //  holds input keys for MEL
     std::vector<mel::Key> input_keys_ = 
 	{ 
@@ -70,8 +71,8 @@ private:
 		mel::Key::Period,	mel::Key::Right
 	};
 
-    // set all relevant staircase method variables
-    double  angle_, 				previous_angle_,
+    // set all other relevant staircase method variables				
+	double 	angle_,					previous_angle_,
 			step_;
     int     condition_iterator_, 	condition_true_,
 			trial_iterator_,		crossovers_;
@@ -83,13 +84,15 @@ private:
 	void 	ConditionInitialize();	
 	void 	TrialInitialize();
 
+	// private UI functions
+	void WaitForKeyRelease(std::vector<mel::Key> keys);
+
 public:
 	// constructor
 	Staircase();
 	~Staircase();
 
     // read various names
-	std::string     GetTrialName();
 	std::string     GetConditionName();
 	std::string	    GetConditionName(int condition_num);
 
