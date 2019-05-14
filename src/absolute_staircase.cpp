@@ -65,10 +65,11 @@ Resets values for next trial
 void Staircase::TrialInitialize()
 {
     // chooses random starting location in range 
-	std::uniform_real_distribution<double> distribution(kRangeMin_, kRangeMax_);
+	std::uniform_real_distribution<double> distribution(kRangeMin_, kRangeMax_[condition_true_]);
 	angle_ = distribution(random_device_);  // generates start angle
-    step_ = 1; // step_ size 
 
+	// loads initial step value for the condition
+	step_ = kInitialStepValues_[condition_true_];
 
     // sets other initial values
     previous_angle_ = angle_; 
@@ -247,10 +248,10 @@ bool Staircase::ReadInput()
 		previous_angle_ = angle_;
 
 		// increases angle_ by step_ size
-		if((angle_+step_) <= kRangeMax_)	
+		if((angle_+step_) <= kRangeMax_[condition_true_])	
 			angle_ += step_;
 		else                        	
-			angle_ = kRangeMax_; 
+			angle_ = kRangeMax_[condition_true_]; 
 	}
 	else if(mel::Keyboard::is_key_pressed(mel::Key::Subtract) || mel::Keyboard::is_key_pressed(mel::Key::Down))
 	{

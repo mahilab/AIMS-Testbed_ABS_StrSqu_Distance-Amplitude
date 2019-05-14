@@ -24,16 +24,19 @@ Requires MEL to build.
 
 
 /***********************************************************
-******************* GLOBAL VARIABLES ***********************
+************************ CONSTANTS *************************
 ************************************************************/
 const int 	kConditions_(9);
 const int	kTrials_(5);
 const int	kCrossoversRequired(5);
-const int 	kInterferenceLow_(36); //36
-const int 	kInterferenceHigh_(72); //72
+const int 	kInterferenceLow_(26); //36
+const int 	kInterferenceHigh_(52); //72
 const int 	kZero_(0);
 const int   kRangeMin_(0);
-const int   kRangeMax_(30);
+const std::array<int, kConditions_> kRangeMax_ = 
+	{0.1,0.1,0.1,60,60,60,90,90,90};
+const std::array<int, kConditions_> kInitialStepValues_ =
+	{0.05,0.05,0.05,1,1,1,2,2,2};
 
 
 /***********************************************************
@@ -68,7 +71,7 @@ private:
 	};
 
     // set all relevant staircase method variables
-    double  angle_, 				previous_angle_, 
+    double  angle_, 				previous_angle_,
 			step_;
     int     condition_iterator_, 	condition_true_,
 			trial_iterator_,		crossovers_;

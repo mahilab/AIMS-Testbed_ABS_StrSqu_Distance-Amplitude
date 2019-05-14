@@ -23,22 +23,21 @@ Absolute Threshold experiment.
 #include <array>
 
 /***********************************************************
-******************* GLOBAL VARIABLES ***********************
+************************ CONSTANTS *************************
 ************************************************************/
 const int	kNumberAngles_(7);
 const int 	kNumberConditions_(9);
-const int	kNumberTrials_(1);
+const int	kNumberTrials_(50);
 const int 	kInterferenceAngleLow_(36);
 const int 	kInterferenceAngleHigh_(72);
 const int 	kZeroAngle_(0);
-const std::array<double, kNumberAngles_> kDefaultAngles_ = 
-	{24, 24, 24, 24, 24, 24, 24};
 const std::array<double, kNumberAngles_> kStretchAngles_ = 
 	{0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08};
 const std::array<double, kNumberAngles_> kStretchAnglesLowInterference_ = 
 	{18, 24, 30, 36, 42, 48, 54};	
 const std::array<double, kNumberAngles_> kStretchAnglesHighInterference_ = 
 	{24, 40, 56, 72, 88, 104, 120};
+
 
 /***********************************************************
 ****************** CLASS DECLARATION ***********************

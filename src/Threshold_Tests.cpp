@@ -516,6 +516,7 @@ void RunExperimentUI(DaqNI &daq_ni,
 	// waits for confirmation before continuing
 	while(input_value != kConfirmValue)
 	{	
+		print("Please set testbed position if neccesary.");
 		print("Insert CONFIRM_VALUE when you are ready to begin condition");
 		std::cin >> input_value;
 	}
@@ -594,21 +595,6 @@ void RunExportUI(std::vector<std::vector<double>>* threshold_output)
 
 
 /***********************************************************
-********************* MISC FUNCTIONS ***********************
-************************************************************/
-/*
-Control C handler to cancel the program at any point and save all data to that point
-*/
-bool MyHandler(CtrlEvent event) {
-	if (event == CtrlEvent::CtrlC) {
-		print("Save and exit registered");
-		print("");
-		stop = true;
-	}
-	return true;
-}
-
-/***********************************************************
 ****************** STAIRCASE FUNCTIONS *********************
 ************************************************************/
 void RunStaircaseUI(DaqNI &daq_ni,
@@ -617,6 +603,9 @@ void RunStaircaseUI(DaqNI &daq_ni,
 {
 	// define relevant variable containers for desire position
 	std::array<std::array<double, 2>, 2> position_desired;
+
+	// creates timer to force the input loop to be slow enough for a user to react
+	mel::Timer timer(mel::Frequency(hertz(10)));
 
 	// prompt user with options
 	print("Please select desired condition to test:");
@@ -646,6 +635,7 @@ void RunStaircaseUI(DaqNI &daq_ni,
 			staircase.GetTestPositions(position_desired);
 			RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 			staircase.ReadInput();
+			timer.wait();
 		}
 		print("Trial Completed");
 	}
@@ -661,6 +651,7 @@ void RunStaircaseUI(DaqNI &daq_ni,
 				staircase.GetTestPositions(position_desired);
 				RunMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b);
 				staircase.ReadInput();
+				timer.wait();
 			}
 			print("Trial Completed");
 			if(staircase.HasNextTrial())
@@ -673,6 +664,22 @@ void RunStaircaseUI(DaqNI &daq_ni,
 			}
 		}
 	}
+}
+
+
+/***********************************************************
+********************* MISC FUNCTIONS ***********************
+************************************************************/
+/*
+Control C handler to cancel the program at any point and save all data to that point
+*/
+bool MyHandler(CtrlEvent event) {
+	if (event == CtrlEvent::CtrlC) {
+		print("Save and exit registered");
+		print("");
+		stop = true;
+	}
+	return true;
 }
 
 
