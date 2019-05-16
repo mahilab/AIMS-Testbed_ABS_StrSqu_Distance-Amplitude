@@ -225,7 +225,7 @@ void RunMovementTrial(std::array<std::array<double,2>,2> &position_desired,	DaqN
 	// defining the file name for the export data 
 	std::string filename, filepath;
 	filename = "/sub" + std::to_string(subject) + "_" + std::to_string(trial_list.GetIterationNumber()) + "_" + trial_list.GetTrialName() + "_data.csv";
-	filepath = kDataPath + "/data/FT/subject" + std::to_string(subject) + filename;
+	filepath = kDataPath + "/FT/subject" + std::to_string(subject) + filename;
 
 	// starting haptic trial
 	RecordMovementTrial(position_desired, daq_ni, ati_a, ati_b, motor_a, motor_b, &movementOutput);
@@ -296,7 +296,7 @@ void ImportTrialList()
 {
 	// attempts to import trialList for subject
 	std::string filename = "/sub" + std::to_string(subject) + "_trialList.csv";
-	std::string filepath = kDataPath + "/data/trialList" + filename;
+	std::string filepath = kDataPath + "/trialList" + filename;
 	if (trial_list.ImportList(filepath))
 	{
 		print("Subject " + std::to_string(subject) + "'s trialList has been successfully imported");
@@ -318,7 +318,7 @@ void ImportRecordABS(std::vector<std::vector<double>>* threshold_output)
 {
 	// declares variables for filename and output
 	std::string filename = "/sub" + std::to_string(subject) + "_ABS_data.csv";
-	std::string filepath = kDataPath + "/data/ABS" + filename;
+	std::string filepath = kDataPath + "/ABS" + filename;
 
 	// defines relevant variables for data import
 	int 		rows = 0;
