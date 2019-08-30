@@ -31,10 +31,18 @@ TrialList::TrialList()
 			for (int k = 0; k < kNumberAngles_; k++) 
 			{
 				double next_angle;
-				if (condition_num >= 3 && condition_num < 6) next_angle = kStretchAnglesLowInterference_[k];	
-				else if (condition_num >= 6 && condition_num < 9) next_angle = kStretchAnglesHighInterference_[k];
-				else next_angle = kStretchAngles_[k];
-				
+				switch(condition_num)
+				{
+				case 0:
+					next_angle = kStretchAngles_[k];
+					break;
+				case 1:
+					next_angle = kStretchAnglesInterferenceLow_[k];
+					break;
+				case 2:
+					next_angle = kStretchAnglesInterferenceHigh_[k];
+					break;
+				}			
 				angles_[condition_num][j + k] = next_angle;
 			}
 		}
@@ -57,7 +65,7 @@ Outputs current condition and angle name
 */
 std::string TrialList::GetTrialName(int condition, int angle)
 {
-	return GetConditionName(condition) + "_" + std::to_string(GetAngleNumber(condition, angle));
+	return GetConditionName() + "_" + std::to_string(GetAngleNumber(condition, angle));
 }
 
 /*
@@ -81,8 +89,20 @@ void TrialList::GetTestPositions(std::array<std::array<double,2>,2> &position_de
 
 	// generates test position std::array and test position std::array
 	double interference_angle = GetInterferenceAngle();
-	test_positions = { GetAngleNumber(condition, angle), interference_angle };
-	
+	//if(condition == 0 || condition == 1)
+	//{
+		// then the condition is manipulating stretch with squeeze interference
+		test_positions = { GetAngleNumber(condition_iterator_, angle), interference_angle };
+		// mel::print("Stretch");
+	//}
+	/*
+	else
+	{
+		// the condition is manipulating squeeze with stretch interference
+		test_positions = { interference_angle, GetAngleNumber(condition_iterator_, angle) };	
+		// mel::print("Squeeze");
+	}
+	*/
 	// attach zero position for motors to return to after cue
 	position_desired[0] = test_positions;
 	position_desired[1] = { kZeroAngle_, kZeroAngle_ };
@@ -136,7 +156,7 @@ std::string TrialList::GetConditionName()
 }
 
 /*
-Overleads condition call to give name if condition is specified
+Overloads condition call to give name if condition is specified
 */
 std::string TrialList::GetConditionName(int condition_num)
 {
@@ -165,9 +185,9 @@ Overloads interference call to get the interference angle if condition is provid
 */
 int TrialList::GetInterferenceAngle(int condition_num)
 {
-	if (condition_num >= 3 && condition_num < 6) return kInterferenceAngleLow_;	
-	else if (condition_num >= 6 && condition_num < 9) return kInterferenceAngleHigh_;
-	else return kZeroAngle_;		
+	if (condition_num == 2) return kInterferenceAngleHigh_;	
+	else if (condition_num == 1) return kInterferenceAngleLow_;
+	else return kZeroAngle_;
 }
 
 /*
@@ -177,7 +197,7 @@ first and the squeeze band second
 */
 void TrialList::GetTestPositions(std::array<std::array<double,2>,2> &position_desired)
 {
-	GetTestPositions(position_desired, condition_iterator_, angle_iterator_);
+	GetTestPositions(position_desired, conditions_[condition_iterator_], angle_iterator_);
 }
 
 /*
@@ -313,12 +333,12 @@ bool TrialList::ImportList(std::string filepath)
 	// imports condition information from trialList file
 	if(!mel::csv_read_row(filepath,conditions_,1,0)) return false;
 
-	// prints condition labels for debug
+	// // prints condition labels for debug
 	// for (int j = 0; j < kNumberConditions_; j++)
 	// {
-	// 	print_string(to_string(conditions_[j]) + ",");
+	// 	mel::print_string(std::to_string(conditions_[j]) + ",");
 	// }
-	// print(" ");
+	// mel::print(" ");
 
 	// loads trialList file from import into class
 	std::array<std::array<double, kNumberConditions_>, kNumberAngles_ * kNumberTrials_> output;
@@ -344,15 +364,10 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 	// create new data logger and prepare output trialList file
 	const std::vector<std::string> kHeaderNames = 
 	{ 
-		"0=Str_No_Min",
-		"1=Str_No_Mid",
-		"2=Str_No_Max",
-		"3=StrXSqu_Lo_Min",
-		"4=StrXSqu_Lo_Mid",
-		"5=StrXSqu_Lo_Max",
-		"6=StrXSqu_Hi_Min",
-		"7=StrXSqu_Hi_Mid",
-		"8=StrXSqu_Hi_Max"
+		"0=Str",
+		"1=Str_Squ",
+		"2=Squ",
+		"3=Squ_Str"
 	};
 	mel::csv_write_row(filepath, kHeaderNames);
 
@@ -362,12 +377,7 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 		(double)conditions_[0], 
 		(double)conditions_[1],
 		(double)conditions_[2],
-		(double)conditions_[3], 
-		(double)conditions_[4],
-		(double)conditions_[5],
-		(double)conditions_[6], 
-		(double)conditions_[7],
-		(double)conditions_[8]
+		(double)conditions_[3]
 	};	
 	mel::csv_append_row(filepath, output_row);
 

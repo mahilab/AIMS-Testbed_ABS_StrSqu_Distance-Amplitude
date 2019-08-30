@@ -118,8 +118,7 @@ Overloads interference call to get the interference angle if condition is provid
 */
 double Staircase::GetInterferenceAngle(int condition_num)
 {
-	if (condition_num >= 3 && condition_num < 6) return kInterferenceLow_;	
-	else if (condition_num >= 6 && condition_num < 9) return kInterferenceHigh_;
+	if (condition_num % 2) return kInterference_;
 	else return kZero_;		
 }
 
@@ -134,7 +133,10 @@ void Staircase::GetTestPositions(std::array<std::array<double,2>,2> &position_de
 	std::array<double, 2> test_positions;
 
 	// generates test position array and test position array
-	test_positions = { angle_, GetInterferenceAngle() };
+	if(condition_true_ > 1)
+		test_positions = { GetInterferenceAngle(), angle_ };
+	else
+		test_positions = { angle_, GetInterferenceAngle() };		
 	
 	// attach zero position for motors to return to after cue
 	position_desired[0] = test_positions;
@@ -359,15 +361,10 @@ void Staircase::ExportList(std::string filepath)
 	// create new data logger and prepare output trialList file
 	const std::vector<std::string> kHeaderNames = 
 	{ 
-		"0=Str_No_Min",
-		"1=Str_No_Mid",
-		"2=Str_No_Max",
-		"3=StrXSqu_Lo_Min",
-		"4=StrXSqu_Lo_Mid",
-		"5=StrXSqu_Lo_Max",
-		"6=StrXSqu_Hi_Min",
-		"7=StrXSqu_Hi_Mid",
-		"8=StrXSqu_Hi_Max"
+		"0=Str",
+		"1=Str_Squ",
+		"2=Squ",
+		"3=Squ_Str"
 	};
 	mel::csv_write_row(filepath, kHeaderNames);
 
@@ -377,12 +374,7 @@ void Staircase::ExportList(std::string filepath)
 		(double)conditions_[0], 
 		(double)conditions_[1],
 		(double)conditions_[2],
-		(double)conditions_[3], 
-		(double)conditions_[4],
-		(double)conditions_[5],
-		(double)conditions_[6], 
-		(double)conditions_[7],
-		(double)conditions_[8]
+		(double)conditions_[3]
 	};	
 	mel::csv_append_row(filepath, condition_row);
 

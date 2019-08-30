@@ -26,17 +26,16 @@ Requires MEL to build.
 /***********************************************************
 ************************ CONSTANTS *************************
 ************************************************************/
-const int 	kConditions_(9);
+const int 	kConditions_(4);
 const int	kTrials_(1);
-const int	kCrossoversRequired_(10);
-const int 	kInterferenceLow_(26); //36
-const int 	kInterferenceHigh_(52); //72
+const int	kCrossoversRequired_(7);
+const int 	kInterference_(52);
 const int 	kZero_(0);
 const int   kRangeMin_(0);
 const std::array<double, kConditions_> kRangeMax_ = 
-	{1,1,1,60,60,60,90,90,90};
+	{2,60,5,90};
 const std::array<double, kConditions_> kInitialStepValues_ =
-	{0.05,0.05,0.05,2,2,2,4,4,4};
+	{0.05,2,0.05,4};
 
 
 /***********************************************************
@@ -50,17 +49,12 @@ private:
 	std::array<double, kCrossoversRequired_>  crossover_angles_;	
 	std::array<std::string, kConditions_> condition_names_ = 
 		{
-		"Stretch_None_Min",
-		"Stretch_None_Mid",
-		"Stretch_None_Max",
-		"StretchXSqueeze_Low_Min",
-		"StretchXSqueeze_Low_Mid",
-		"StretchXSqueeze_Low_Max",
-		"StretchXSqueeze_High_Min",
-		"StretchXSqueeze_High_Mid",
-		"StretchXSqueeze_High_Max"
+		"Stretch",
+		"Stretch_Squeeze",
+		"Squeeze",
+		"Squeeze_Stretch"
 		}; // array of conditions
-	std::array<int, kConditions_> conditions_ = { 0,1,2,3,4,5,6,7,8 };
+	std::array<int, kConditions_> conditions_ = { 0,1,2,3};
 		
     //  holds input keys for MEL
     std::vector<mel::Key> input_keys_ = 
