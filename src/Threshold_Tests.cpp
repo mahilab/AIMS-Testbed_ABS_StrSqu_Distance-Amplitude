@@ -760,7 +760,10 @@ int main(int argc, char* argv[])
 		{
 			// runs a full condition unless interupted
 			RunExperimentUI(daq_ni, ati_a, ati_b, motor_a, motor_b, &threshold_output);
-
+			
+			// exports relevant ABS data
+			RunExportUI(&threshold_output);
+			
 			// advance to the next condition if another condition exists
 			AdvanceExperimentCondition();		
 		}
