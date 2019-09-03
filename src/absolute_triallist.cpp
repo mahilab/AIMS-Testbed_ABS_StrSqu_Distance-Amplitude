@@ -40,6 +40,27 @@ TrialList::TrialList()
 					next_angle = kStretchAnglesInterferenceLow_[k];
 					break;
 				case 2:
+					next_angle = kStretchAnglesInterferenceMed_[k];
+					break;
+				case 3:
+					next_angle = kStretchAnglesInterferenceHigh_[k];
+					break;
+				case 4:
+					next_angle = kStretchAnglesInterferenceLow_[k];
+					break;
+				case 5:
+					next_angle = kStretchAnglesInterferenceMed_[k];
+					break;
+				case 6:
+					next_angle = kStretchAnglesInterferenceHigh_[k];
+					break;
+				case 7:
+					next_angle = kStretchAnglesInterferenceLow_[k];
+					break;
+				case 8:
+					next_angle = kStretchAnglesInterferenceMed_[k];
+					break;
+				case 9:
 					next_angle = kStretchAnglesInterferenceHigh_[k];
 					break;
 				}			
@@ -185,8 +206,9 @@ Overloads interference call to get the interference angle if condition is provid
 */
 int TrialList::GetInterferenceAngle(int condition_num)
 {
-	if (condition_num == 2) return kInterferenceAngleHigh_;	
-	else if (condition_num == 1) return kInterferenceAngleLow_;
+	if (condition_num == 9 || condition_num == 6 || condition_num == 3) return kInterferenceAngleHigh_;	
+	else if (condition_num == 8 || condition_num == 5 || condition_num == 2) return kInterferenceAngleMed_;
+	else if (condition_num == 7 || condition_num == 4 || condition_num == 1) return kInterferenceAngleLow_;
 	else return kZeroAngle_;
 }
 
@@ -365,9 +387,15 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 	const std::vector<std::string> kHeaderNames = 
 	{ 
 		"0=Str",
-		"1=Str_Squ",
-		"2=Squ",
-		"3=Squ_Str"
+		"1=Str_SquLow_Close",
+		"2=Str_SquMed_Med",
+		"3=Str_SquHigh_Far",
+		"4=Str_SquLow_Close",
+		"5=Str_SquMed_Med",
+		"6=Str_SquHigh_Far",
+		"7=Str_SquLow_Close",
+		"8=Str_SquMed_Med",
+		"9=Str_SquHigh_Far"
 	};
 	mel::csv_write_row(filepath, kHeaderNames);
 
@@ -377,7 +405,13 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 		(double)conditions_[0], 
 		(double)conditions_[1],
 		(double)conditions_[2],
-		(double)conditions_[3]
+		(double)conditions_[3],
+		(double)conditions_[4],
+		(double)conditions_[5],
+		(double)conditions_[6],
+		(double)conditions_[7],
+		(double)conditions_[8],
+		(double)conditions_[9],
 	};	
 	mel::csv_append_row(filepath, output_row);
 

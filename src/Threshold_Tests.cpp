@@ -55,7 +55,7 @@ using namespace mel;
 const int	 		kTimeBetweenCues(1000);// sets the number of milliseconds to wait in between cues
 const int	 		kConfirmValue(123);
 const bool	 		kTimestamp(false);
-const std::string	kDataPath("C:/Users/zaz2/Desktop/Absolute_Threshold_Tests"); //file path to Main project files
+const std::string	kDataPath("C:/Git/local_data/ABS_Distance-Amplitude"); //file path to Main project files
 
 // variable to track protocol being run						
 bool		 staircase_flag(false);

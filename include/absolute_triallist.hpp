@@ -26,18 +26,21 @@ Absolute Threshold experiment.
 ************************ CONSTANTS *************************
 ************************************************************/
 const int	kNumberAngles_(7);
-const int 	kNumberConditions_(3);
+const int 	kNumberConditions_(10);
 const int	kNumberTrials_(50);
 //const int 	kInterferenceAngle_(52);
 const int	kInterferenceAngleLow_(26);
-const int	kInterferenceAngleHigh_(52);
+const int	kInterferenceAngleMed_(52);
+const int	kInterferenceAngleHigh_(78);
 const int 	kZeroAngle_(0);
 const std::array<double, kNumberAngles_> kStretchAngles_ = 
 	{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
 const std::array<double, kNumberAngles_> kStretchAnglesInterferenceLow_ = 
-	{0, 7, 14, 21, 28, 35, 42};	 // 52 interference
+	{0, 3, 6, 9, 12, 15, 18};	 // 26 interference	
+const std::array<double, kNumberAngles_> kStretchAnglesInterferenceMed_ = 
+	{0, 7, 21, 21, 28, 35, 42};	 // 52 interference
 const std::array<double, kNumberAngles_> kStretchAnglesInterferenceHigh_ = 
-	{0, 7, 14, 21, 28, 35, 42};	 // 52 interference
+	{72, 72, 72, 72, 72, 72, 72};	 // 78 interference
 
 /***********************************************************
 ****************** CLASS DECLARATION ***********************
@@ -49,11 +52,19 @@ private:
 	std::array<std::array<double, kNumberAngles_ * kNumberTrials_>, kNumberConditions_> angles_; // array of arrays that hold angle positions
 	std::array<std::string, kNumberConditions_> condition_names_ = 
 		{
-		"Stretch",
-		"Stretch_SqueezeLow",
-		"Stretch_SqueezeHigh"
+		"Stretch_CloseDist",
+		"Stretch_SqueezeLow_CloseDist",
+		"Stretch_SqueezeMed_CloseDist",
+		"Stretch_SqueezeHigh_CloseDist",
+		"Stretch_SqueezeLow_MedDist",
+		"Stretch_SqueezeMed_MedDist",
+		"Stretch_SqueezeHigh_MedDist",
+		"Stretch_SqueezeLow_HighDist",
+		"Stretch_SqueezeMed_HighDist",
+		"Stretch_SqueezeHigh_HighDist"
 		}; // array of conditions_
-	std::array<int, kNumberConditions_> conditions_ = { 0,1,2 };
+	//std::array<int, kNumberConditions_> conditions_ = { 0,1,2,3,4,5,6,7,8,9 };
+	std::array<int, kNumberConditions_> conditions_ = { 3,3,3,3,3,3,3,3,3,3 };
 	
 	// random device variable
 	std::random_device random_device_; // create random generator
