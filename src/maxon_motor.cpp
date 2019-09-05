@@ -275,7 +275,7 @@ BOOL MaxonMotor::TargetReached()
 
 	// update the position of the encoder
 	actual_position_ = encoder_.get_value();
-
+	
 	// set limits for the motor reaching its desired target
 	int small_limit = 3;
 	int large_limit = 100;

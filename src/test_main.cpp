@@ -61,7 +61,7 @@ const int	 		kConfirmValue(123);
 const bool	 		kTimestamp(false);
 
 /* CHANGE THIS TO THE FILE PATH YOU WANT FILES SAVED TO FOR THIS EXPERIMENT */
-const std::string	kDataPath("C:/Users/akl5/Desktop/Absolute_Threshold"); //file path to Main project files
+const std::string	kDataPath("C:/Git/local_data/ABS_Distance-Amplitude"); //file path to Main project files
 
 // variable to track protocol being run						
 bool		 staircase_flag(false);
@@ -75,7 +75,6 @@ int			 subject = 0;
 double		 motor_position[2];
 double		 motor_desired_position[2];
 ctrl_bool	 stop(false);
-Mutex		 mutex; // mutex for the separate motor position reading thread
 
 
 /***********************************************************
@@ -120,7 +119,7 @@ void RecordMovementTrial(std::array<std::array<double,2>,2> &position_desired,
 	
 	// loops through each of the positions in the std::array for the trial
 	for (int i = 0; i < position_desired.size(); i++)
-	{		
+	{
 		// MOTOR MOVEMENT COMMANDS
 		// gets the new desired position to be sent to the motors
 		motor_desired_position[0] = position_desired[i][0];
@@ -133,73 +132,51 @@ void RecordMovementTrial(std::array<std::array<double,2>,2> &position_desired,
 		motor_a.GetPosition(motor_position[0]);
 		motor_b.GetPosition(motor_position[1]);
 
-		// DAQmx Read Code
-		daq_ni.update();
-		// measuring force/torque sensors
-		std::vector<double> forceA =	ati_a.get_forces();
-		std::vector<double> forceB =  	ati_b.get_forces();
-		std::vector<double> torqueA = 	ati_a.get_torques();
-		std::vector<double> torqueB = 	ati_b.get_torques();
-		// makes new output row for data logging
-		std::vector<double> output_row;	
-			
-		output_row = { (double)sample,
-			// Motor/Sensor A
-			motor_desired_position[0],	motor_position[0], 
-			forceA[0],			forceA[1],			forceA[2], 
-			torqueA[0],			torqueA[1],			torqueA[2],
-			// Motor/Sensor B
-			motor_desired_position[1],	motor_position[1],
-			forceB[0],			forceB[1],			forceB[2],
-			torqueB[0],			torqueB[1],			torqueB[2]
-		};
-		
-		// input the the sampled data into output buffer
-		output_->push_back(output_row);
-		// increment sample number
-		sample++;
-		
-		// DATA ACQUISTION LOOP
-		// create 1000Hz timer
-		Timer timer(hertz(1000)); 		
 		// move motors to desired positions
 		motor_a.Move( motor_desired_position[0] );
 		motor_b.Move( motor_desired_position[1] );
 
+		// create 1000Hz timer
+		Timer timer(hertz(1000)); 
+
 		// movement data record loop
 		while (!motor_a.TargetReached() || !motor_b.TargetReached())
 		{
-			// updates the input channels of the QPide
-			qpid.update_input();
 			// gets the actual positions of the motors
+			qpid.update_input();
 			motor_a.GetPosition(motor_position[0]);
 			motor_b.GetPosition(motor_position[1]);
+
 			// DAQmx Read Code
 			daq_ni.update();
-
 			// measuring force/torque sensors
-			forceA =	ati_a.get_forces();
-			forceB =  	ati_b.get_forces();
-			torqueA = 	ati_a.get_torques();
-			torqueB = 	ati_b.get_torques();
-
-			// makes new output row for data logging			
+			std::vector<double> forceA =	ati_a.get_forces();
+			std::vector<double> forceB =  	ati_b.get_forces();
+			std::vector<double> torqueA = 	ati_a.get_torques();
+			std::vector<double> torqueB = 	ati_b.get_torques();
+			std::vector<double> output_row;	
+			
+			// creates the output row for the motor position data file
 			output_row = { (double)sample,
 				// Motor/Sensor A
 				motor_desired_position[0],	motor_position[0], 
 				forceA[0],			forceA[1],			forceA[2], 
 				torqueA[0],			torqueA[1],			torqueA[2],
+				
 				// Motor/Sensor B
 				motor_desired_position[1],	motor_position[1],
 				forceB[0],			forceB[1],			forceB[2],
 				torqueB[0],			torqueB[1],			torqueB[2]
 			};
-		
 			// input the the sampled data into output buffer
 			output_->push_back(output_row);
+
+			// debugging motor output
+			// print(	motor_desired_position[0],		motor_position[0],
+			//  		motor_desired_position[1],		motor_position[1]);
+
 			// increment sample number
 			sample++;
-			// wait until timer count is over before repeating
 			timer.wait();
 		}
 	}
@@ -343,7 +320,7 @@ void ImportRecordABS(std::vector<std::vector<double>>* threshold_output)
 		}
 		rows -= kRowOffset;
 	}
-
+	
 	// prints the size of the input file
 	// print("Rows: " + std::to_string(rows) + " | Cols: " + std::to_string(cols));
 
@@ -531,7 +508,7 @@ void RunExperimentUI(DaqNI &daq_ni, 		QPid &qpid,
 		trial_list.GetTestPositions(position_desired);
 
 		// prints current desired test position for debug purposes
-		//print(position_desired[0]);
+		// print(position_desired[0]);
 		
 		// provides cue to user
 		RunMovementTrial(position_desired, daq_ni, qpid, ati_a, ati_b, motor_a, motor_b);
@@ -542,7 +519,7 @@ void RunExperimentUI(DaqNI &daq_ni, 		QPid &qpid,
 		// moves experiment to the next trial within current condition
 		trial_list.NextAngle();
 	}
-
+	
 	// check for exit condition before final cue
 	if (stop) return;
 
