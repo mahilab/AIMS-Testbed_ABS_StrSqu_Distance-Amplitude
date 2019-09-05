@@ -113,7 +113,7 @@ void TrialList::GetTestPositions(std::array<std::array<double,2>,2> &position_de
 	//if(condition == 0 || condition == 1)
 	//{
 		// then the condition is manipulating stretch with squeeze interference
-		test_positions = { GetAngleNumber(condition_iterator_, angle), interference_angle };
+		test_positions = { interference_angle, GetAngleNumber(condition_iterator_, angle) };
 		// mel::print("Stretch");
 	//}
 	/*
