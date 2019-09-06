@@ -28,18 +28,18 @@ Absolute Threshold experiment.
 const int	kNumberAngles_(7);
 const int 	kNumberConditions_(10);
 const int	kNumberTrials_(50);
-const int	kInterferenceAngleLow_(52);
-const int	kInterferenceAngleMed_(70);
-const int	kInterferenceAngleHigh_(88);
+const int	kInterferenceAngleLow_(34);
+const int	kInterferenceAngleMed_(52);
+const int	kInterferenceAngleHigh_(70);
 const int 	kZeroAngle_(0);
 const std::array<double, kNumberAngles_> kStretchAngles_ = 
 	{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
 const std::array<double, kNumberAngles_> kStretchAnglesInterferenceLow_ = 
-	{0, 7, 14, 21, 28, 35, 42};	 // 52 interference	
+	{0, 5, 10, 15, 20, 25, 30};	 // 34 interference	
 const std::array<double, kNumberAngles_> kStretchAnglesInterferenceMed_ = 
-	{0, 9, 18, 27, 36, 45, 54};	 // 70 interference
+	{0, 7, 14, 21, 28, 35, 42};	 // 52 interference
 const std::array<double, kNumberAngles_> kStretchAnglesInterferenceHigh_ = 
-	{0, 12, 24, 36, 48, 60, 72}; // 88 interference
+	{0, 12, 24, 36, 48, 60, 72}; // 70 interference
 
 /***********************************************************
 ****************** CLASS DECLARATION ***********************
@@ -63,8 +63,8 @@ private:
 		"Stretch_SqueezeHigh_HighDist"
 		}; // array of conditions_
 	std::array<int, kNumberConditions_> conditions_ = { 0,1,2,3,4,5,6,7,8,9 };
-	// std::array<int, kNumberConditions_> conditions_ = { 1,1,1,1,1,1,1,1,1,1 };
-	
+	// std::array<int, kNumberConditions_> conditions_ = { 3,3,3,3,3,3,3,3,3,3 };
+	// 2,2,2,2,2,2,2,2,2,2
 	// random device variable
 	std::random_device random_device_; // create random generator
 	
