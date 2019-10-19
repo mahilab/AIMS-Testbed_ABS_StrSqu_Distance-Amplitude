@@ -390,13 +390,13 @@ void TrialList::ExportList(std::string filepath, bool timestamp)
 	{ 
 		"0=Str",
 		"1=Str_SquLow_Close",
-		"2=Str_SquMed_Med",
-		"3=Str_SquHigh_Far",
-		"4=Str_SquLow_Close",
+		"2=Str_SquMed_Close",
+		"3=Str_SquHigh_Close",
+		"4=Str_SquLow_Med",
 		"5=Str_SquMed_Med",
-		"6=Str_SquHigh_Far",
-		"7=Str_SquLow_Close",
-		"8=Str_SquMed_Med",
+		"6=Str_SquHigh_Med",
+		"7=Str_SquLow_Far",
+		"8=Str_SquMed_Far",
 		"9=Str_SquHigh_Far"
 	};
 	mel::csv_write_row(filepath, kHeaderNames);
